@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Time Value Calculator</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: #fafafa;
+                color: #1a1a1a;
+                padding: 2rem 1rem;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                text-align: center;
+            }
+
+            .subtitle {
+                text-align: center;
+                color: #666;
+                font-size: 0.9rem;
+                margin-bottom: 2rem;
+            }
+
+            .formula {
+                text-align: center;
+                font-family: ui-monospace, monospace;
+                font-size: 0.85rem;
+                color: #555;
+                background: #f0f0f0;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                margin-top: 2rem;
+                display: inline-block;
+                width: 100%;
+            }
+
+            .input-section {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.75rem;
+                margin-bottom: 2rem;
+            }
+
+            .input-section label {
+                font-weight: 500;
+                color: #333;
+            }
+
+            .input-section input {
+                width: 140px;
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                text-align: right;
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+                -moz-appearance: textfield;
+            }
+
+            .input-section input::-webkit-outer-spin-button,
+            .input-section input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            .input-section .currency-suffix {
+                font-weight: 500;
+                color: #555;
+            }
+
+            .input-section input:focus {
+                outline: none;
+                border-color: #4a90d9;
+                box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
+            }
+
+            .input-section input.highlight {
+                border-color: #4a90d9;
+                animation: pulse 2s ease-in-out infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 0 0 rgba(74, 144, 217, 0.3);
+                }
+                50% {
+                    box-shadow: 0 0 0 6px rgba(74, 144, 217, 0);
+                }
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -1rem;
+                padding: 0 1rem;
+            }
+
+            table {
+                width: 100%;
+                min-width: 600px;
+                border-collapse: collapse;
+                background: white;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            th,
+            td {
+                padding: 0.6rem 0.5rem;
+                text-align: center;
+                border: 1px solid #e5e5e5;
+                font-size: 0.85rem;
+            }
+
+            th {
+                background: #f5f5f5;
+                font-weight: 600;
+                color: #333;
+            }
+
+            .row-header {
+                text-align: right;
+                font-weight: 500;
+                background: #f5f5f5;
+                white-space: nowrap;
+                padding-right: 1rem;
+            }
+
+            .corner-cell {
+                background: #eee;
+            }
+
+            .value-cell {
+                font-family: ui-monospace, monospace;
+                font-weight: 500;
+            }
+
+            .absurd {
+                background: #f0f0f0;
+                color: #aaa;
+            }
+
+            .axis-label {
+                font-size: 0.7rem;
+                color: #888;
+                font-weight: 400;
+                display: block;
+            }
+
+            footer {
+                text-align: center;
+                margin-top: 2rem;
+                font-size: 0.8rem;
+                color: #999;
+            }
+
+            footer a {
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>How much can you spend to save time?</h1>
+            <p class="subtitle">
+                Is it worth it to automate it or delegate it?
+            </p>
+
+            <div class="input-section">
+                <label for="salary">Annual income:</label>
+                <input
+                    type="number"
+                    id="salary"
+                    min="0"
+                    step="1000"
+                    placeholder="100000"
+                /><span class="currency-suffix">¤</span>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="corner-cell">
+                                <span class="axis-label">frequency →</span>
+                            </th>
+
+                            <th>50/day</th>
+                            <th>5/day</th>
+                            <th>Daily</th>
+                            <th>Weekly</th>
+                            <th>Monthly</th>
+                            <th>Yearly</th>
+                        </tr>
+                        <tr>
+                            <th class="corner-cell">
+                                <span class="axis-label">time saved ↓</span>
+                            </th>
+                            <th
+                                colspan="6"
+                                style="
+                                    font-weight: 400;
+                                    font-size: 0.75rem;
+                                    color: #888;
+                                    padding: 0.25rem;
+                                "
+                            >
+                                How often you do the task
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="grid-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="formula">
+                Value = (Income / 2,080 hours) × Time Freed Per Year
+            </div>
+
+            <footer>
+                Inspired by
+                <a href="https://xkcd.com/1205/" target="_blank" rel="noopener"
+                    >XKCD 1205</a
+                >. ¤ is a universal currency symbol.
+            </footer>
+        </div>
+
+        <script>
+            const STORAGE_KEY = "timeValueCalculator_salary";
+            const DEFAULT_SALARY = 65536;
+            const WORKING_HOURS_PER_YEAR = 2080;
+
+            const FREQUENCIES = [
+                { label: "50/day", perYear: 50 * 250 },
+                { label: "5/day", perYear: 5 * 250 },
+                { label: "Daily", perYear: 250 },
+                { label: "Weekly", perYear: 52 },
+                { label: "Monthly", perYear: 12 },
+                { label: "Yearly", perYear: 1 },
+            ];
+
+            const TIME_SAVED = [
+                { label: "1 second", seconds: 1 },
+                { label: "5 seconds", seconds: 5 },
+                { label: "30 seconds", seconds: 30 },
+                { label: "1 minute", seconds: 60 },
+                { label: "5 minutes", seconds: 300 },
+                { label: "30 minutes", seconds: 1800 },
+                { label: "1 hour", seconds: 3600 },
+                { label: "6 hours", seconds: 21600 },
+                { label: "1 day", seconds: 28800 },
+            ];
+
+            const salaryInput = document.getElementById("salary");
+            const gridBody = document.getElementById("grid-body");
+
+            function loadSalary() {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                return saved ? parseInt(saved, 10) : null;
+            }
+
+            function saveSalary(value) {
+                localStorage.setItem(STORAGE_KEY, value.toString());
+            }
+
+            function calculateValue(salary, secondsSaved, occurrencesPerYear) {
+                const hourlyRate = salary / WORKING_HOURS_PER_YEAR;
+                const hoursSavedPerYear =
+                    (secondsSaved * occurrencesPerYear) / 3600;
+                return hourlyRate * hoursSavedPerYear;
+            }
+
+            function formatCurrency(value) {
+                if (value < 1) return "0¤";
+                if (value >= 1000) {
+                    const k = value / 1000;
+                    return (
+                        (k >= 100
+                            ? Math.round(k)
+                            : k.toFixed(1).replace(/\.0$/, "")) + "k¤"
+                    );
+                }
+                return Math.round(value) + "¤";
+            }
+
+            // Determines which cells get grayed out
+            function isAbsurd(secondsSaved, occurrencesPerYear, salary) {
+                // Too small to matter
+                const value = calculateValue(
+                    salary,
+                    secondsSaved,
+                    occurrencesPerYear,
+                );
+                if (value < 1) return true;
+
+                // Too much time to be possible
+                const totalSecondsPerYear = secondsSaved * occurrencesPerYear;
+                const workingSecondsPerYear =
+                    (WORKING_HOURS_PER_YEAR * 3600) / 2;
+                return totalSecondsPerYear > workingSecondsPerYear;
+            }
+
+            function renderGrid() {
+                const salary =
+                    parseInt(salaryInput.value, 10) || DEFAULT_SALARY;
+
+                gridBody.innerHTML = TIME_SAVED.map((time) => {
+                    const cells = FREQUENCIES.map((freq) => {
+                        const absurd = isAbsurd(
+                            time.seconds,
+                            freq.perYear,
+                            salary,
+                        );
+                        const value = calculateValue(
+                            salary,
+                            time.seconds,
+                            freq.perYear,
+                        );
+                        const formatted = absurd ? "" : formatCurrency(value);
+                        return `<td class="value-cell ${absurd ? "absurd" : ""}">${formatted}</td>`;
+                    }).join("");
+
+                    return `<tr><td class="row-header">${time.label}</td>${cells}</tr>`;
+                }).join("");
+            }
+
+            // Initialize
+            const savedSalary = loadSalary();
+            if (savedSalary !== null) {
+                salaryInput.value = savedSalary;
+            } else {
+                salaryInput.value = DEFAULT_SALARY;
+                salaryInput.classList.add("highlight");
+            }
+
+            renderGrid();
+
+            // Event listeners
+            salaryInput.addEventListener("input", () => {
+                salaryInput.classList.remove("highlight");
+                const value = parseInt(salaryInput.value, 10);
+                if (value > 0) {
+                    saveSalary(value);
+                }
+                renderGrid();
+            });
+
+            salaryInput.addEventListener("focus", () => {
+                salaryInput.classList.remove("highlight");
+            });
+        </script>
+    </body>
+</html>
