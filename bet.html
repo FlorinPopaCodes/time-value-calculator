@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bet Sizing Calculator</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: #fafafa;
+                color: #1a1a1a;
+                padding: 2rem 1rem;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                text-align: center;
+            }
+
+            .subtitle {
+                text-align: center;
+                color: #666;
+                font-size: 0.9rem;
+                margin-bottom: 2rem;
+            }
+
+            .formula {
+                text-align: center;
+                font-family: ui-monospace, monospace;
+                font-size: 0.8rem;
+                color: #555;
+                background: #f0f0f0;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                margin-top: 2rem;
+                display: block;
+                width: 100%;
+                line-height: 1.8;
+            }
+
+            /* Controls: bankroll input + segmented toggles */
+            .controls {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 1.25rem;
+                margin-bottom: 2rem;
+            }
+
+            .control-group {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+            }
+
+            .control-group label {
+                font-weight: 500;
+                color: #333;
+            }
+
+            .control-group input {
+                width: 140px;
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                text-align: right;
+                transition:
+                    border-color 0.2s,
+                    box-shadow 0.2s;
+                -moz-appearance: textfield;
+            }
+
+            .control-group input::-webkit-outer-spin-button,
+            .control-group input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            .control-group .currency-suffix {
+                font-weight: 400;
+                color: #c2c2c2;
+            }
+
+            .control-group input:focus {
+                outline: none;
+                border-color: #4a90d9;
+                box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
+            }
+
+            .control-group input.highlight {
+                border-color: #4a90d9;
+                animation: pulse 2s ease-in-out infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 0 0 rgba(74, 144, 217, 0.3);
+                }
+                50% {
+                    box-shadow: 0 0 0 6px rgba(74, 144, 217, 0);
+                }
+            }
+
+            /* Segmented control */
+            .seg {
+                display: inline-flex;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .seg button {
+                border: none;
+                background: white;
+                padding: 0.45rem 0.7rem;
+                font-size: 0.9rem;
+                font-family: inherit;
+                cursor: pointer;
+                color: #666;
+                transition:
+                    background 0.15s,
+                    color 0.15s;
+            }
+
+            .seg button + button {
+                border-left: 1px solid #ddd;
+            }
+
+            .seg button.active {
+                background: #4a90d9;
+                color: white;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -1rem;
+                padding: 0 1rem;
+            }
+
+            table {
+                width: 100%;
+                min-width: 600px;
+                border-collapse: collapse;
+                background: white;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            th,
+            td {
+                padding: 0.6rem 0.5rem;
+                text-align: center;
+                border: 1px solid #e5e5e5;
+                font-size: 0.85rem;
+            }
+
+            th {
+                background: #f5f5f5;
+                font-weight: 500;
+                color: #6e6e6e;
+            }
+
+            .row-header {
+                text-align: right;
+                font-weight: 500;
+                color: #6e6e6e;
+                background: #f5f5f5;
+                white-space: nowrap;
+                padding-right: 1rem;
+            }
+
+            .corner-cell {
+                background: #eee;
+            }
+
+            .value-cell {
+                font-family: ui-monospace, monospace;
+                font-weight: 500;
+            }
+
+            .ev-sub {
+                display: block;
+                font-size: 0.7rem;
+                color: #c2c2c2;
+                font-weight: 400;
+                margin-top: 0.15rem;
+            }
+
+            .absurd {
+                background: #f0f0f0;
+                color: #aaa;
+            }
+
+            .axis-label {
+                font-size: 0.7rem;
+                color: #888;
+                font-weight: 400;
+                display: block;
+            }
+
+            /* Axis bands: compact labels at the table edges */
+            .band-th {
+                background: #f5f5f5;
+                color: #888;
+                font-weight: 600;
+                font-size: 0.7rem;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                border-bottom: none;
+            }
+
+            .rowaxis-th {
+                background: #f5f5f5;
+                color: #888;
+                font-weight: 600;
+                font-size: 0.7rem;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                width: 1.6rem;
+                border-right: none;
+            }
+
+            .rowaxis-label {
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                white-space: nowrap;
+                margin: 0 auto;
+            }
+
+            /* Muted currency symbol */
+            .cur {
+                color: #c2c2c2;
+                font-weight: 400;
+            }
+
+            /* Empty state: shown when no valid bankroll is entered */
+            .empty-state {
+                padding: 2.75rem 1.25rem;
+                text-align: center;
+                color: #888;
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+
+            .empty-state strong {
+                display: block;
+                color: #555;
+                font-weight: 600;
+                margin-bottom: 0.2rem;
+            }
+
+            footer {
+                text-align: center;
+                margin-top: 2rem;
+                font-size: 0.8rem;
+                color: #999;
+            }
+
+            footer a {
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>How much should you bet?</h1>
+            <p class="subtitle">Size the bet to your edge — without going broke.</p>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="bankroll">Bankroll:</label>
+                    <input
+                        type="number"
+                        id="bankroll"
+                        min="0"
+                        step="1000"
+                        placeholder="65536"
+                        title="65,536 to start. That's 2¹⁶, naturally. Type your own."
+                    /><span class="currency-suffix">¤</span>
+                </div>
+
+                <div class="control-group">
+                    <label>Kelly:</label>
+                    <div class="seg" id="fraction-toggle">
+                        <button data-value="0.25">¼</button>
+                        <button data-value="0.3333333333333333">⅓</button>
+                        <button data-value="0.5">½</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>View:</label>
+                    <div class="seg" id="view-toggle">
+                        <button data-value="kelly">Kelly</button>
+                        <button data-value="ev">EV</button>
+                        <button data-value="both">Both</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="corner-cell" colspan="2" rowspan="2">
+                                <span class="axis-label">per bet</span>
+                            </th>
+                            <th class="band-th" colspan="6">Payout odds</th>
+                        </tr>
+                        <tr id="odds-header">
+                            <!-- Populated by JavaScript -->
+                        </tr>
+                    </thead>
+                    <tbody id="grid-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="formula" id="formula">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <footer>
+                Sizing uses the
+                <a
+                    href="https://en.wikipedia.org/wiki/Kelly_criterion"
+                    target="_blank"
+                    rel="noopener"
+                    >Kelly criterion</a
+                >. ¤ is a universal currency symbol.<br />
+                Not betting advice. Your probability is a guess; the math only
+                divides by it.<br />
+                Made by
+                <a href="https://florinpopa.dev/" target="_blank" rel="noopener"
+                    >Florin Popa</a
+                >.
+            </footer>
+        </div>
+
+        <script>
+            const KEY_BANKROLL = "kellyCalculator_bankroll";
+            const KEY_FRACTION = "kellyCalculator_fraction";
+            const KEY_VIEW = "kellyCalculator_view";
+
+            const DEFAULT_BANKROLL = 65536;
+            const DEFAULT_FRACTION = 0.5;
+            const DEFAULT_VIEW = "kelly";
+
+            // Payout odds (net, "b to 1"), ascending left -> right
+            const ODDS = [
+                { label: "1:1", b: 1 },
+                { label: "2:1", b: 2 },
+                { label: "3:1", b: 3 },
+                { label: "5:1", b: 5 },
+                { label: "10:1", b: 10 },
+                { label: "20:1", b: 20 },
+            ];
+
+            // Win probability, ascending top -> bottom
+            const PROBS = [
+                { label: "5%", p: 0.05 },
+                { label: "10%", p: 0.1 },
+                { label: "20%", p: 0.2 },
+                { label: "30%", p: 0.3 },
+                { label: "40%", p: 0.4 },
+                { label: "50%", p: 0.5 },
+                { label: "60%", p: 0.6 },
+                { label: "75%", p: 0.75 },
+                { label: "90%", p: 0.9 },
+            ];
+
+            // Maps a stored fraction value to its display symbol
+            const FRACTION_SYM = {
+                "0.25": "¼",
+                "0.3333333333333333": "⅓",
+                "0.5": "½",
+            };
+
+            const bankrollInput = document.getElementById("bankroll");
+            const fractionToggle = document.getElementById("fraction-toggle");
+            const viewToggle = document.getElementById("view-toggle");
+            const oddsHeader = document.getElementById("odds-header");
+            const gridBody = document.getElementById("grid-body");
+            const formulaEl = document.getElementById("formula");
+
+            let fraction = DEFAULT_FRACTION;
+            let view = DEFAULT_VIEW;
+
+            const CUR = '<span class="cur">¤</span>';
+
+            function loadInt(key) {
+                const saved = localStorage.getItem(key);
+                return saved ? parseInt(saved, 10) : null;
+            }
+
+            function formatCurrency(value) {
+                if (value < 1) return "0" + CUR;
+                if (value >= 1000) {
+                    const k = value / 1000;
+                    return (
+                        (k >= 100
+                            ? Math.round(k)
+                            : k.toFixed(1).replace(/\.0$/, "")) +
+                        "k" +
+                        CUR
+                    );
+                }
+                return Math.round(value) + CUR;
+            }
+
+            // edge = expected profit per 1 staked
+            function edgeOf(p, b) {
+                return p * (b + 1) - 1;
+            }
+
+            // Kelly stake in currency, scaled by the chosen fraction
+            function stakeOf(bankroll, p, b) {
+                const f = edgeOf(p, b) / b; // full Kelly fraction of bankroll
+                return fraction * f * bankroll;
+            }
+
+            function renderOddsHeader() {
+                oddsHeader.innerHTML = ODDS.map(
+                    (o) => `<th>${o.label}</th>`,
+                ).join("");
+            }
+
+            function renderFormula() {
+                const sym = FRACTION_SYM[String(fraction)] || "";
+                formulaEl.innerHTML =
+                    "edge = p × (odds + 1) − 1 &nbsp;·&nbsp; " +
+                    `Kelly stake = ${sym} × (edge / odds) × bankroll &nbsp;·&nbsp; ` +
+                    "EV = stake × edge";
+            }
+
+            function renderEmptyState() {
+                const cols = ODDS.length + 2;
+                gridBody.innerHTML =
+                    `<tr><td class="empty-state" colspan="${cols}">` +
+                    "<strong>Enter your bankroll above.</strong>" +
+                    "Then see how much each edge is worth — and how much to stake." +
+                    "</td></tr>";
+            }
+
+            function renderGrid() {
+                const raw = bankrollInput.value.trim();
+                const bankroll = parseInt(raw, 10);
+
+                if (!raw || isNaN(bankroll) || bankroll <= 0) {
+                    renderEmptyState();
+                    return;
+                }
+
+                gridBody.innerHTML = PROBS.map((row, i) => {
+                    const cells = ODDS.map((col) => {
+                        const edge = edgeOf(row.p, col.b);
+                        const stake = stakeOf(bankroll, row.p, col.b);
+
+                        // Gray out: no edge, or a stake too small to matter
+                        const absurd = edge <= 0 || stake < 1;
+                        if (absurd) {
+                            return `<td class="value-cell absurd"></td>`;
+                        }
+
+                        const ev = stake * edge;
+                        let content;
+                        if (view === "kelly") {
+                            content = formatCurrency(stake);
+                        } else if (view === "ev") {
+                            content = "+" + formatCurrency(ev);
+                        } else {
+                            content =
+                                formatCurrency(stake) +
+                                `<span class="ev-sub">+${formatCurrency(ev)}</span>`;
+                        }
+                        return `<td class="value-cell">${content}</td>`;
+                    }).join("");
+
+                    const rail =
+                        i === 0
+                            ? `<th class="rowaxis-th" rowspan="${PROBS.length}"><span class="rowaxis-label">Win probability</span></th>`
+                            : "";
+
+                    return `<tr>${rail}<td class="row-header">${row.label}</td>${cells}</tr>`;
+                }).join("");
+            }
+
+            function setActive(toggle, value) {
+                toggle.querySelectorAll("button").forEach((btn) => {
+                    btn.classList.toggle("active", btn.dataset.value === value);
+                });
+            }
+
+            // Initialize
+            const savedBankroll = loadInt(KEY_BANKROLL);
+            if (savedBankroll !== null) {
+                bankrollInput.value = savedBankroll;
+            } else {
+                bankrollInput.value = DEFAULT_BANKROLL;
+                bankrollInput.classList.add("highlight");
+            }
+
+            const savedFraction = localStorage.getItem(KEY_FRACTION);
+            if (savedFraction !== null && FRACTION_SYM[savedFraction]) {
+                fraction = parseFloat(savedFraction);
+            }
+
+            const savedView = localStorage.getItem(KEY_VIEW);
+            if (savedView === "kelly" || savedView === "ev" || savedView === "both") {
+                view = savedView;
+            }
+
+            setActive(fractionToggle, String(fraction));
+            setActive(viewToggle, view);
+            renderOddsHeader();
+            renderFormula();
+            renderGrid();
+
+            // Event listeners
+            bankrollInput.addEventListener("input", () => {
+                bankrollInput.classList.remove("highlight");
+                const value = parseInt(bankrollInput.value, 10);
+                if (value > 0) {
+                    localStorage.setItem(KEY_BANKROLL, value.toString());
+                }
+                renderGrid();
+            });
+
+            bankrollInput.addEventListener("focus", () => {
+                bankrollInput.classList.remove("highlight");
+            });
+
+            fractionToggle.addEventListener("click", (e) => {
+                const btn = e.target.closest("button");
+                if (!btn) return;
+                fraction = parseFloat(btn.dataset.value);
+                localStorage.setItem(KEY_FRACTION, btn.dataset.value);
+                setActive(fractionToggle, btn.dataset.value);
+                renderFormula();
+                renderGrid();
+            });
+
+            viewToggle.addEventListener("click", (e) => {
+                const btn = e.target.closest("button");
+                if (!btn) return;
+                view = btn.dataset.value;
+                localStorage.setItem(KEY_VIEW, view);
+                setActive(viewToggle, view);
+                renderGrid();
+            });
+        </script>
+    </body>
+</html>
