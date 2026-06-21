@@ -7,7 +7,8 @@ shared command-palette switcher (open with the top pill, `/`, or `⌘K`).
 | Calculator | Folder | Question | Live |
 |---|---|---|---|
 | Time Value | `time-value/` | How much can you spend to save time? | [tvc.florinpopa.dev](https://tvc.florinpopa.dev) |
-| Bet Sizing | `bet-sizing/` | How much should you bet? (Kelly) | bet-sizing.florinpopa.dev |
+| Kelly Stake | `kelly/` | How much should you bet? (Kelly) | kelly.florinpopa.dev |
+| Expected Value | `ev/` | What is a bet worth, in cash? | ev.florinpopa.dev |
 
 Plus a hub at `napkin.florinpopa.dev` (folder `napkin/`) — a plain fallback index
 of the suite for anyone who lands there directly.

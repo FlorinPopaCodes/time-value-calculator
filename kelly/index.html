@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Time Value Calculator</title>
+        <title>Kelly Stake Calculator</title>
         <style>
             * {
                 box-sizing: border-box;
@@ -47,30 +47,39 @@
             .formula {
                 text-align: center;
                 font-family: ui-monospace, monospace;
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 color: #555;
                 background: #f0f0f0;
                 padding: 0.5rem 1rem;
                 border-radius: 4px;
                 margin-top: 2rem;
-                display: inline-block;
+                display: block;
                 width: 100%;
+                line-height: 1.8;
             }
 
-            .input-section {
+            /* Controls: bankroll input + segmented toggle */
+            .controls {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 0.75rem;
+                flex-wrap: wrap;
+                gap: 1.25rem;
                 margin-bottom: 2rem;
             }
 
-            .input-section label {
+            .control-group {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+            }
+
+            .control-group label {
                 font-weight: 500;
                 color: #333;
             }
 
-            .input-section input {
+            .control-group input {
                 width: 140px;
                 padding: 0.5rem 0.75rem;
                 font-size: 1rem;
@@ -83,24 +92,24 @@
                 -moz-appearance: textfield;
             }
 
-            .input-section input::-webkit-outer-spin-button,
-            .input-section input::-webkit-inner-spin-button {
+            .control-group input::-webkit-outer-spin-button,
+            .control-group input::-webkit-inner-spin-button {
                 -webkit-appearance: none;
                 margin: 0;
             }
 
-            .input-section .currency-suffix {
+            .control-group .currency-suffix {
                 font-weight: 400;
                 color: #c2c2c2;
             }
 
-            .input-section input:focus {
+            .control-group input:focus {
                 outline: none;
                 border-color: #4a90d9;
                 box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
             }
 
-            .input-section input.highlight {
+            .control-group input.highlight {
                 border-color: #4a90d9;
                 animation: pulse 2s ease-in-out infinite;
             }
@@ -113,6 +122,36 @@
                 50% {
                     box-shadow: 0 0 0 6px rgba(74, 144, 217, 0);
                 }
+            }
+
+            /* Segmented control */
+            .seg {
+                display: inline-flex;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .seg button {
+                border: none;
+                background: white;
+                padding: 0.45rem 0.7rem;
+                font-size: 0.9rem;
+                font-family: inherit;
+                cursor: pointer;
+                color: #666;
+                transition:
+                    background 0.15s,
+                    color 0.15s;
+            }
+
+            .seg button + button {
+                border-left: 1px solid #ddd;
+            }
+
+            .seg button.active {
+                background: #4a90d9;
+                color: white;
             }
 
             .table-wrapper {
@@ -211,7 +250,7 @@
                 font-weight: 400;
             }
 
-            /* Empty state: shown when no valid income is entered */
+            /* Empty state: shown when no valid bankroll is entered */
             .empty-state {
                 padding: 2.75rem 1.25rem;
                 text-align: center;
@@ -403,49 +442,49 @@
                         <circle cx="11" cy="11" r="7"></circle>
                         <path d="m21 21-4.3-4.3"></path>
                     </svg>
-                    <span class="sw-cur" id="sw-cur">Time Value</span>
+                    <span class="sw-cur" id="sw-cur">Kelly Stake</span>
                     <span>· switch</span>
                     <kbd>/</kbd>
                 </button>
             </nav>
 
-            <h1>How much can you spend to save time?</h1>
-            <p class="subtitle">
-                Is it worth it to automate it or delegate it?
-            </p>
+            <h1>How much should you bet?</h1>
+            <p class="subtitle">Size the bet to your edge — without going broke.</p>
 
-            <div class="input-section">
-                <label for="salary">Annual income:</label>
-                <input
-                    type="number"
-                    id="salary"
-                    min="0"
-                    step="1000"
-                    placeholder="65536"
-                    title="65,536 to start. That's 2¹⁶, naturally. Type your own."
-                /><span class="currency-suffix">¤</span>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="bankroll">Bankroll:</label>
+                    <input
+                        type="number"
+                        id="bankroll"
+                        min="0"
+                        step="1000"
+                        placeholder="65536"
+                        title="65,536 to start. That's 2¹⁶, naturally. Type your own."
+                    /><span class="currency-suffix">¤</span>
+                </div>
+
+                <div class="control-group">
+                    <label>Kelly:</label>
+                    <div class="seg" id="fraction-toggle">
+                        <button data-value="0.25">¼</button>
+                        <button data-value="0.3333333333333333">⅓</button>
+                        <button data-value="0.5">½</button>
+                    </div>
+                </div>
             </div>
 
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
-                            <th
-                                class="corner-cell"
-                                colspan="2"
-                                rowspan="2"
-                            >
-                                <span class="axis-label">per task</span>
+                            <th class="corner-cell" colspan="2" rowspan="2">
+                                <span class="axis-label">per bet</span>
                             </th>
-                            <th class="band-th" colspan="6">Frequency</th>
+                            <th class="band-th" colspan="6">Payout odds</th>
                         </tr>
-                        <tr>
-                            <th>50/day</th>
-                            <th>5/day</th>
-                            <th>1/day</th>
-                            <th>1/week</th>
-                            <th>1/month</th>
-                            <th>1/year</th>
+                        <tr id="odds-header">
+                            <!-- Populated by JavaScript -->
                         </tr>
                     </thead>
                     <tbody id="grid-body">
@@ -454,75 +493,78 @@
                 </table>
             </div>
 
-            <div class="formula">
-                Justified spend = (Income / 2,080 hours) × Time Freed Per Year
+            <div class="formula" id="formula">
+                <!-- Populated by JavaScript -->
             </div>
 
             <footer>
-                Inspired by
-                <a href="https://xkcd.com/1205/" target="_blank" rel="noopener"
-                    >XKCD 1205</a
-                >. ¤ is a universal currency symbol.<br />
-                Also try the
-                <a href="https://kelly.florinpopa.dev"
-                    >Kelly Stake Calculator</a
-                >.<br />
-                Made by
+                Sizing uses the
                 <a
-                    href="https://florinpopa.dev/"
+                    href="https://en.wikipedia.org/wiki/Kelly_criterion"
                     target="_blank"
                     rel="noopener"
+                    >Kelly criterion</a
+                >. ¤ is a universal currency symbol.<br />
+                Not betting advice. Your probability is a guess; the math only
+                divides by it.<br />
+                Made by
+                <a href="https://florinpopa.dev/" target="_blank" rel="noopener"
                     >Florin Popa</a
                 >.
             </footer>
         </div>
 
         <script>
-            const STORAGE_KEY = "timeValueCalculator_salary";
-            const DEFAULT_SALARY = 65536;
-            const WORKING_HOURS_PER_YEAR = 2080;
+            const KEY_BANKROLL = "kellyCalculator_bankroll";
+            const KEY_FRACTION = "kellyCalculator_fraction";
 
-            const FREQUENCIES = [
-                { label: "50/day", perYear: 50 * 250 },
-                { label: "5/day", perYear: 5 * 250 },
-                { label: "1/day", perYear: 250 },
-                { label: "1/week", perYear: 52 },
-                { label: "1/month", perYear: 12 },
-                { label: "1/year", perYear: 1 },
+            const DEFAULT_BANKROLL = 65536;
+            const DEFAULT_FRACTION = 0.5;
+
+            // Payout odds (net, "b to 1"), ascending left -> right
+            const ODDS = [
+                { label: "1:1", b: 1 },
+                { label: "2:1", b: 2 },
+                { label: "3:1", b: 3 },
+                { label: "5:1", b: 5 },
+                { label: "10:1", b: 10 },
+                { label: "20:1", b: 20 },
             ];
 
-            const TIME_SAVED = [
-                { label: "1 sec", seconds: 1 },
-                { label: "5 sec", seconds: 5 },
-                { label: "30 sec", seconds: 30 },
-                { label: "1 min", seconds: 60 },
-                { label: "5 min", seconds: 300 },
-                { label: "30 min", seconds: 1800 },
-                { label: "1 hr", seconds: 3600 },
-                { label: "6 hr", seconds: 21600 },
-                { label: "1 day", seconds: 28800 },
+            // Win probability, ascending top -> bottom
+            const PROBS = [
+                { label: "5%", p: 0.05 },
+                { label: "10%", p: 0.1 },
+                { label: "20%", p: 0.2 },
+                { label: "30%", p: 0.3 },
+                { label: "40%", p: 0.4 },
+                { label: "50%", p: 0.5 },
+                { label: "60%", p: 0.6 },
+                { label: "75%", p: 0.75 },
+                { label: "90%", p: 0.9 },
             ];
 
-            const salaryInput = document.getElementById("salary");
+            // Maps a stored fraction value to its display symbol
+            const FRACTION_SYM = {
+                "0.25": "¼",
+                "0.3333333333333333": "⅓",
+                "0.5": "½",
+            };
+
+            const bankrollInput = document.getElementById("bankroll");
+            const fractionToggle = document.getElementById("fraction-toggle");
+            const oddsHeader = document.getElementById("odds-header");
             const gridBody = document.getElementById("grid-body");
+            const formulaEl = document.getElementById("formula");
 
-            function loadSalary() {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                return saved ? parseInt(saved, 10) : null;
-            }
-
-            function saveSalary(value) {
-                localStorage.setItem(STORAGE_KEY, value.toString());
-            }
-
-            function calculateValue(salary, secondsSaved, occurrencesPerYear) {
-                const hourlyRate = salary / WORKING_HOURS_PER_YEAR;
-                const hoursSavedPerYear =
-                    (secondsSaved * occurrencesPerYear) / 3600;
-                return hourlyRate * hoursSavedPerYear;
-            }
+            let fraction = DEFAULT_FRACTION;
 
             const CUR = '<span class="cur">¤</span>';
+
+            function loadInt(key) {
+                const saved = localStorage.getItem(key);
+                return saved ? parseInt(saved, 10) : null;
+            }
 
             function formatCurrency(value) {
                 if (value < 1) return "0" + CUR;
@@ -539,89 +581,118 @@
                 return Math.round(value) + CUR;
             }
 
-            // Determines which cells get grayed out
-            function isAbsurd(secondsSaved, occurrencesPerYear, salary) {
-                // Too small to matter
-                const value = calculateValue(
-                    salary,
-                    secondsSaved,
-                    occurrencesPerYear,
-                );
-                if (value < 1) return true;
+            // edge = expected profit per 1 staked
+            function edgeOf(p, b) {
+                return p * (b + 1) - 1;
+            }
 
-                // Too much time to be possible
-                const totalSecondsPerYear = secondsSaved * occurrencesPerYear;
-                const workingSecondsPerYear =
-                    (WORKING_HOURS_PER_YEAR * 3600) / 2;
-                return totalSecondsPerYear > workingSecondsPerYear;
+            // Kelly stake in currency, scaled by the chosen fraction
+            function stakeOf(bankroll, p, b) {
+                const f = edgeOf(p, b) / b; // full Kelly fraction of bankroll
+                return fraction * f * bankroll;
+            }
+
+            function renderOddsHeader() {
+                oddsHeader.innerHTML = ODDS.map(
+                    (o) => `<th>${o.label}</th>`,
+                ).join("");
+            }
+
+            function renderFormula() {
+                const sym = FRACTION_SYM[String(fraction)] || "";
+                formulaEl.innerHTML =
+                    "edge = p × (odds + 1) − 1 &nbsp;·&nbsp; " +
+                    `Kelly stake = ${sym} × (edge / odds) × bankroll`;
             }
 
             function renderEmptyState() {
-                const cols = FREQUENCIES.length + 2;
+                const cols = ODDS.length + 2;
                 gridBody.innerHTML =
                     `<tr><td class="empty-state" colspan="${cols}">` +
-                    "<strong>Enter your annual income above.</strong>" +
-                    "Then find out which of your tiny, repeated tasks are secretly expensive." +
+                    "<strong>Enter your bankroll above.</strong>" +
+                    "Then see how much to stake on each edge." +
                     "</td></tr>";
             }
 
             function renderGrid() {
-                const raw = salaryInput.value.trim();
-                const salary = parseInt(raw, 10);
+                const raw = bankrollInput.value.trim();
+                const bankroll = parseInt(raw, 10);
 
-                if (!raw || isNaN(salary) || salary <= 0) {
+                if (!raw || isNaN(bankroll) || bankroll <= 0) {
                     renderEmptyState();
                     return;
                 }
 
-                gridBody.innerHTML = TIME_SAVED.map((time, i) => {
-                    const cells = FREQUENCIES.map((freq) => {
-                        const absurd = isAbsurd(
-                            time.seconds,
-                            freq.perYear,
-                            salary,
-                        );
-                        const value = calculateValue(
-                            salary,
-                            time.seconds,
-                            freq.perYear,
-                        );
-                        const formatted = absurd ? "" : formatCurrency(value);
-                        return `<td class="value-cell ${absurd ? "absurd" : ""}">${formatted}</td>`;
+                gridBody.innerHTML = PROBS.map((row, i) => {
+                    const cells = ODDS.map((col) => {
+                        const edge = edgeOf(row.p, col.b);
+                        const stake = stakeOf(bankroll, row.p, col.b);
+
+                        // Gray out: no edge, or a stake too small to matter
+                        const absurd = edge <= 0 || stake < 1;
+                        if (absurd) {
+                            return `<td class="value-cell absurd"></td>`;
+                        }
+
+                        return `<td class="value-cell">${formatCurrency(stake)}</td>`;
                     }).join("");
 
                     const rail =
                         i === 0
-                            ? `<th class="rowaxis-th" rowspan="${TIME_SAVED.length}"><span class="rowaxis-label">Time saved</span></th>`
+                            ? `<th class="rowaxis-th" rowspan="${PROBS.length}"><span class="rowaxis-label">Win probability</span></th>`
                             : "";
 
-                    return `<tr>${rail}<td class="row-header">${time.label}</td>${cells}</tr>`;
+                    return `<tr>${rail}<td class="row-header">${row.label}</td>${cells}</tr>`;
                 }).join("");
             }
 
-            // Initialize
-            const savedSalary = loadSalary();
-            if (savedSalary !== null) {
-                salaryInput.value = savedSalary;
-            } else {
-                salaryInput.value = DEFAULT_SALARY;
-                salaryInput.classList.add("highlight");
+            function setActive(toggle, value) {
+                toggle.querySelectorAll("button").forEach((btn) => {
+                    btn.classList.toggle("active", btn.dataset.value === value);
+                });
             }
 
+            // Initialize
+            const savedBankroll = loadInt(KEY_BANKROLL);
+            if (savedBankroll !== null) {
+                bankrollInput.value = savedBankroll;
+            } else {
+                bankrollInput.value = DEFAULT_BANKROLL;
+                bankrollInput.classList.add("highlight");
+            }
+
+            const savedFraction = localStorage.getItem(KEY_FRACTION);
+            if (savedFraction !== null && FRACTION_SYM[savedFraction]) {
+                fraction = parseFloat(savedFraction);
+            }
+
+            setActive(fractionToggle, String(fraction));
+            renderOddsHeader();
+            renderFormula();
             renderGrid();
 
             // Event listeners
-            salaryInput.addEventListener("input", () => {
-                salaryInput.classList.remove("highlight");
-                const value = parseInt(salaryInput.value, 10);
+            bankrollInput.addEventListener("input", () => {
+                bankrollInput.classList.remove("highlight");
+                const value = parseInt(bankrollInput.value, 10);
                 if (value > 0) {
-                    saveSalary(value);
+                    localStorage.setItem(KEY_BANKROLL, value.toString());
                 }
                 renderGrid();
             });
 
-            salaryInput.addEventListener("focus", () => {
-                salaryInput.classList.remove("highlight");
+            bankrollInput.addEventListener("focus", () => {
+                bankrollInput.classList.remove("highlight");
+            });
+
+            fractionToggle.addEventListener("click", (e) => {
+                const btn = e.target.closest("button");
+                if (!btn) return;
+                fraction = parseFloat(btn.dataset.value);
+                localStorage.setItem(KEY_FRACTION, btn.dataset.value);
+                setActive(fractionToggle, btn.dataset.value);
+                renderFormula();
+                renderGrid();
             });
         </script>
 
@@ -630,7 +701,7 @@
             // To add a calculator: append it to CALCULATOR_REGISTRY here AND in every sibling page.
             // URLs are absolute because each calculator is its own subdomain.
             (function () {
-                const CURRENT = "time-value";
+                const CURRENT = "kelly";
                 const CALCULATOR_REGISTRY = [
                     {
                         id: "time-value",

@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Bet Sizing Calculator</title>
+        <title>Expected Value Calculator</title>
         <style>
             * {
                 box-sizing: border-box;
@@ -58,7 +58,7 @@
                 line-height: 1.8;
             }
 
-            /* Controls: bankroll input + segmented toggles */
+            /* Controls: stake input */
             .controls {
                 display: flex;
                 align-items: center;
@@ -124,36 +124,6 @@
                 }
             }
 
-            /* Segmented control */
-            .seg {
-                display: inline-flex;
-                border: 2px solid #ddd;
-                border-radius: 6px;
-                overflow: hidden;
-            }
-
-            .seg button {
-                border: none;
-                background: white;
-                padding: 0.45rem 0.7rem;
-                font-size: 0.9rem;
-                font-family: inherit;
-                cursor: pointer;
-                color: #666;
-                transition:
-                    background 0.15s,
-                    color 0.15s;
-            }
-
-            .seg button + button {
-                border-left: 1px solid #ddd;
-            }
-
-            .seg button.active {
-                background: #4a90d9;
-                color: white;
-            }
-
             .table-wrapper {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
@@ -203,14 +173,6 @@
                 font-weight: 500;
             }
 
-            .ev-sub {
-                display: block;
-                font-size: 0.7rem;
-                color: #c2c2c2;
-                font-weight: 400;
-                margin-top: 0.15rem;
-            }
-
             .absurd {
                 background: #f0f0f0;
                 color: #aaa;
@@ -258,7 +220,7 @@
                 font-weight: 400;
             }
 
-            /* Empty state: shown when no valid bankroll is entered */
+            /* Empty state: shown when no valid stake is entered */
             .empty-state {
                 padding: 2.75rem 1.25rem;
                 text-align: center;
@@ -450,44 +412,28 @@
                         <circle cx="11" cy="11" r="7"></circle>
                         <path d="m21 21-4.3-4.3"></path>
                     </svg>
-                    <span class="sw-cur" id="sw-cur">Bet Sizing</span>
+                    <span class="sw-cur" id="sw-cur">Expected Value</span>
                     <span>· switch</span>
                     <kbd>/</kbd>
                 </button>
             </nav>
 
-            <h1>How much should you bet?</h1>
-            <p class="subtitle">Size the bet to your edge — without going broke.</p>
+            <h1>What's the bet worth?</h1>
+            <p class="subtitle">
+                The expected value of a stake, before you place it.
+            </p>
 
             <div class="controls">
                 <div class="control-group">
-                    <label for="bankroll">Bankroll:</label>
+                    <label for="stake">Stake:</label>
                     <input
                         type="number"
-                        id="bankroll"
+                        id="stake"
                         min="0"
-                        step="1000"
-                        placeholder="65536"
-                        title="65,536 to start. That's 2¹⁶, naturally. Type your own."
+                        step="100"
+                        placeholder="1000"
+                        title="A round 1,000 to start. Type your own."
                     /><span class="currency-suffix">¤</span>
-                </div>
-
-                <div class="control-group">
-                    <label>Kelly:</label>
-                    <div class="seg" id="fraction-toggle">
-                        <button data-value="0.25">¼</button>
-                        <button data-value="0.3333333333333333">⅓</button>
-                        <button data-value="0.5">½</button>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>View:</label>
-                    <div class="seg" id="view-toggle">
-                        <button data-value="kelly">Kelly</button>
-                        <button data-value="ev">EV</button>
-                        <button data-value="both">Both</button>
-                    </div>
                 </div>
             </div>
 
@@ -515,15 +461,15 @@
             </div>
 
             <footer>
-                Sizing uses the
+                Shows
                 <a
-                    href="https://en.wikipedia.org/wiki/Kelly_criterion"
+                    href="https://en.wikipedia.org/wiki/Expected_value"
                     target="_blank"
                     rel="noopener"
-                    >Kelly criterion</a
+                    >expected value</a
                 >. ¤ is a universal currency symbol.<br />
                 Not betting advice. Your probability is a guess; the math only
-                divides by it.<br />
+                multiplies by it.<br />
                 Made by
                 <a href="https://florinpopa.dev/" target="_blank" rel="noopener"
                     >Florin Popa</a
@@ -532,13 +478,9 @@
         </div>
 
         <script>
-            const KEY_BANKROLL = "kellyCalculator_bankroll";
-            const KEY_FRACTION = "kellyCalculator_fraction";
-            const KEY_VIEW = "kellyCalculator_view";
+            const KEY_STAKE = "evCalculator_stake";
 
-            const DEFAULT_BANKROLL = 65536;
-            const DEFAULT_FRACTION = 0.5;
-            const DEFAULT_VIEW = "kelly";
+            const DEFAULT_STAKE = 1000;
 
             // Payout odds (net, "b to 1"), ascending left -> right
             const ODDS = [
@@ -563,22 +505,10 @@
                 { label: "90%", p: 0.9 },
             ];
 
-            // Maps a stored fraction value to its display symbol
-            const FRACTION_SYM = {
-                "0.25": "¼",
-                "0.3333333333333333": "⅓",
-                "0.5": "½",
-            };
-
-            const bankrollInput = document.getElementById("bankroll");
-            const fractionToggle = document.getElementById("fraction-toggle");
-            const viewToggle = document.getElementById("view-toggle");
+            const stakeInput = document.getElementById("stake");
             const oddsHeader = document.getElementById("odds-header");
             const gridBody = document.getElementById("grid-body");
             const formulaEl = document.getElementById("formula");
-
-            let fraction = DEFAULT_FRACTION;
-            let view = DEFAULT_VIEW;
 
             const CUR = '<span class="cur">¤</span>';
 
@@ -607,10 +537,9 @@
                 return p * (b + 1) - 1;
             }
 
-            // Kelly stake in currency, scaled by the chosen fraction
-            function stakeOf(bankroll, p, b) {
-                const f = edgeOf(p, b) / b; // full Kelly fraction of bankroll
-                return fraction * f * bankroll;
+            // Expected value in currency for a given stake
+            function evOf(stake, p, b) {
+                return stake * edgeOf(p, b);
             }
 
             function renderOddsHeader() {
@@ -620,10 +549,8 @@
             }
 
             function renderFormula() {
-                const sym = FRACTION_SYM[String(fraction)] || "";
                 formulaEl.innerHTML =
                     "edge = p × (odds + 1) − 1 &nbsp;·&nbsp; " +
-                    `Kelly stake = ${sym} × (edge / odds) × bankroll &nbsp;·&nbsp; ` +
                     "EV = stake × edge";
             }
 
@@ -631,16 +558,16 @@
                 const cols = ODDS.length + 2;
                 gridBody.innerHTML =
                     `<tr><td class="empty-state" colspan="${cols}">` +
-                    "<strong>Enter your bankroll above.</strong>" +
-                    "Then see how much each edge is worth — and how much to stake." +
+                    "<strong>Enter your stake above.</strong>" +
+                    "Then see the expected value of each edge." +
                     "</td></tr>";
             }
 
             function renderGrid() {
-                const raw = bankrollInput.value.trim();
-                const bankroll = parseInt(raw, 10);
+                const raw = stakeInput.value.trim();
+                const stake = parseInt(raw, 10);
 
-                if (!raw || isNaN(bankroll) || bankroll <= 0) {
+                if (!raw || isNaN(stake) || stake <= 0) {
                     renderEmptyState();
                     return;
                 }
@@ -648,26 +575,15 @@
                 gridBody.innerHTML = PROBS.map((row, i) => {
                     const cells = ODDS.map((col) => {
                         const edge = edgeOf(row.p, col.b);
-                        const stake = stakeOf(bankroll, row.p, col.b);
+                        const ev = evOf(stake, row.p, col.b);
 
-                        // Gray out: no edge, or a stake too small to matter
-                        const absurd = edge <= 0 || stake < 1;
+                        // Gray out: no edge, or an EV too small to matter
+                        const absurd = edge <= 0 || ev < 1;
                         if (absurd) {
                             return `<td class="value-cell absurd"></td>`;
                         }
 
-                        const ev = stake * edge;
-                        let content;
-                        if (view === "kelly") {
-                            content = formatCurrency(stake);
-                        } else if (view === "ev") {
-                            content = "+" + formatCurrency(ev);
-                        } else {
-                            content =
-                                formatCurrency(stake) +
-                                `<span class="ev-sub">+${formatCurrency(ev)}</span>`;
-                        }
-                        return `<td class="value-cell">${content}</td>`;
+                        return `<td class="value-cell">+${formatCurrency(ev)}</td>`;
                     }).join("");
 
                     const rail =
@@ -679,68 +595,31 @@
                 }).join("");
             }
 
-            function setActive(toggle, value) {
-                toggle.querySelectorAll("button").forEach((btn) => {
-                    btn.classList.toggle("active", btn.dataset.value === value);
-                });
-            }
-
             // Initialize
-            const savedBankroll = loadInt(KEY_BANKROLL);
-            if (savedBankroll !== null) {
-                bankrollInput.value = savedBankroll;
+            const savedStake = loadInt(KEY_STAKE);
+            if (savedStake !== null) {
+                stakeInput.value = savedStake;
             } else {
-                bankrollInput.value = DEFAULT_BANKROLL;
-                bankrollInput.classList.add("highlight");
+                stakeInput.value = DEFAULT_STAKE;
+                stakeInput.classList.add("highlight");
             }
 
-            const savedFraction = localStorage.getItem(KEY_FRACTION);
-            if (savedFraction !== null && FRACTION_SYM[savedFraction]) {
-                fraction = parseFloat(savedFraction);
-            }
-
-            const savedView = localStorage.getItem(KEY_VIEW);
-            if (savedView === "kelly" || savedView === "ev" || savedView === "both") {
-                view = savedView;
-            }
-
-            setActive(fractionToggle, String(fraction));
-            setActive(viewToggle, view);
             renderOddsHeader();
             renderFormula();
             renderGrid();
 
             // Event listeners
-            bankrollInput.addEventListener("input", () => {
-                bankrollInput.classList.remove("highlight");
-                const value = parseInt(bankrollInput.value, 10);
+            stakeInput.addEventListener("input", () => {
+                stakeInput.classList.remove("highlight");
+                const value = parseInt(stakeInput.value, 10);
                 if (value > 0) {
-                    localStorage.setItem(KEY_BANKROLL, value.toString());
+                    localStorage.setItem(KEY_STAKE, value.toString());
                 }
                 renderGrid();
             });
 
-            bankrollInput.addEventListener("focus", () => {
-                bankrollInput.classList.remove("highlight");
-            });
-
-            fractionToggle.addEventListener("click", (e) => {
-                const btn = e.target.closest("button");
-                if (!btn) return;
-                fraction = parseFloat(btn.dataset.value);
-                localStorage.setItem(KEY_FRACTION, btn.dataset.value);
-                setActive(fractionToggle, btn.dataset.value);
-                renderFormula();
-                renderGrid();
-            });
-
-            viewToggle.addEventListener("click", (e) => {
-                const btn = e.target.closest("button");
-                if (!btn) return;
-                view = btn.dataset.value;
-                localStorage.setItem(KEY_VIEW, view);
-                setActive(viewToggle, view);
-                renderGrid();
+            stakeInput.addEventListener("focus", () => {
+                stakeInput.classList.remove("highlight");
             });
         </script>
 
@@ -749,7 +628,7 @@
             // To add a calculator: append it to CALCULATOR_REGISTRY here AND in every sibling page.
             // URLs are absolute because each calculator is its own subdomain.
             (function () {
-                const CURRENT = "bet-sizing";
+                const CURRENT = "ev";
                 const CALCULATOR_REGISTRY = [
                     {
                         id: "time-value",
@@ -758,10 +637,16 @@
                         url: "https://tvc.florinpopa.dev",
                     },
                     {
-                        id: "bet-sizing",
-                        name: "Bet Sizing",
-                        desc: "Kelly stake for a favourable bet.",
-                        url: "https://bet-sizing.florinpopa.dev",
+                        id: "kelly",
+                        name: "Kelly Stake",
+                        desc: "How much to bet on a favourable edge.",
+                        url: "https://kelly.florinpopa.dev",
+                    },
+                    {
+                        id: "ev",
+                        name: "Expected Value",
+                        desc: "What a bet is worth, in cash.",
+                        url: "https://ev.florinpopa.dev",
                     },
                 ];
 
