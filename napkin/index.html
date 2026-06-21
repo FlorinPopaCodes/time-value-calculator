@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Calculators</title>
+        <meta
+            name="description"
+            content="A small suite of single-purpose decision calculators."
+        />
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: #fafafa;
+                color: #1a1a1a;
+                padding: 2rem 1rem;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 540px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                text-align: center;
+            }
+
+            .subtitle {
+                text-align: center;
+                color: #666;
+                font-size: 0.9rem;
+                margin-bottom: 2rem;
+            }
+
+            /* The hub is the switcher rendered static: a plain list of every
+               calculator. No pill, no search — this page IS the directory. */
+            .list {
+                list-style: none;
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            .row {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 1rem 1.1rem;
+                color: inherit;
+                text-decoration: none;
+                border-top: 1px solid #f0f0f0;
+                transition: background 0.15s;
+            }
+            .row:first-child {
+                border-top: none;
+            }
+            .row:hover,
+            .row:focus-visible {
+                background: #f4f7fb;
+                outline: none;
+            }
+
+            .name {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: #1a1a1a;
+                white-space: nowrap;
+            }
+            .desc {
+                font-size: 0.8rem;
+                color: #777;
+                text-align: right;
+            }
+
+            footer {
+                text-align: center;
+                margin-top: 2rem;
+                font-size: 0.8rem;
+                color: #999;
+            }
+            footer a {
+                color: #666;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .row {
+                    transition: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Calculators</h1>
+            <p class="subtitle">
+                A small suite of single-purpose decision calculators.
+            </p>
+
+            <!-- Fallback index of the suite. To add a calculator, add a row
+                 here AND append it to the CALCULATOR_REGISTRY array in every
+                 calculator page's switcher. -->
+            <ul class="list">
+                <li>
+                    <a class="row" href="https://tvc.florinpopa.dev">
+                        <span class="name">Time Value</span>
+                        <span class="desc"
+                            >What a recurring task is worth automating.</span
+                        >
+                    </a>
+                </li>
+                <li>
+                    <a class="row" href="https://bet-sizing.florinpopa.dev">
+                        <span class="name">Bet Sizing</span>
+                        <span class="desc"
+                            >Kelly stake for a favourable bet.</span
+                        >
+                    </a>
+                </li>
+            </ul>
+
+            <footer>
+                Made by
+                <a href="https://florinpopa.dev/" target="_blank" rel="noopener"
+                    >Florin Popa</a
+                >.
+            </footer>
+        </div>
+    </body>
+</html>

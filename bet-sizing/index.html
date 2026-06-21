@@ -746,11 +746,11 @@
 
         <script>
             // Calculator switcher — shared across the suite via an inline registry.
-            // To add a calculator: append it to CALCS here AND in every sibling page.
+            // To add a calculator: append it to CALCULATOR_REGISTRY here AND in every sibling page.
             // URLs are absolute because each calculator is its own subdomain.
             (function () {
                 const CURRENT = "bet-sizing";
-                const CALCS = [
+                const CALCULATOR_REGISTRY = [
                     {
                         id: "time-value",
                         name: "Time Value",
@@ -772,7 +772,7 @@
                 let cursor = 0;
 
                 const matches = () =>
-                    CALCS.filter(
+                    CALCULATOR_REGISTRY.filter(
                         (c) =>
                             c.name.toLowerCase().includes(query) ||
                             c.desc.toLowerCase().includes(query),
@@ -848,7 +848,7 @@
 
                 function open() {
                     query = "";
-                    cursor = firstCursor(CALCS);
+                    cursor = firstCursor(CALCULATOR_REGISTRY);
                     draw();
                 }
                 function close() {

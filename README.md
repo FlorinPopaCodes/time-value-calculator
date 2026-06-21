@@ -9,6 +9,9 @@ shared command-palette switcher (open with the top pill, `/`, or `⌘K`).
 | Time Value | `time-value/` | How much can you spend to save time? | [tvc.florinpopa.dev](https://tvc.florinpopa.dev) |
 | Bet Sizing | `bet-sizing/` | How much should you bet? (Kelly) | bet-sizing.florinpopa.dev |
 
+Plus a hub at `napkin.florinpopa.dev` (folder `napkin/`) — a plain fallback index
+of the suite for anyone who lands there directly.
+
 ## Structure
 
 One folder per calculator, each its own Cloudflare Pages project / subdomain. No
