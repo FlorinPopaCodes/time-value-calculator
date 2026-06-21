@@ -49,10 +49,21 @@ external links still go straight to a calculator subdomain and never see it.
 
 ## The switcher (cross-calculator navigation)
 
-Every page carries an identical command-palette switcher (the `.sw-*` CSS block
-+ the trailing `<script>` IIFE). It opens via the visible pill at the top, the
-`/` key, or `⌘K`/`Ctrl+K`, and on touch becomes a top-anchored sheet (no
-autofocus, so the list stays tappable).
+Every page carries an identical switcher (the `.sw-*` CSS block + the trailing
+`<script>` IIFE). It opens via the visible pill at the top, the `/` key, or
+`⌘K`/`Ctrl+K`, and on touch becomes a top-anchored sheet.
+
+- **Letters-only jump, no search box.** The open panel is a plain keyed list,
+  not a search input: each sibling row shows a `kbd` badge with its jump key
+  (the first letter of its name — `T`/`K`/`E` today, all unique), and pressing
+  that letter navigates immediately. `Esc` closes. Rows stay real `<a>` links,
+  so `Tab`+`Enter` (and screen readers) work natively without our own arrow/
+  cursor handling. Keys are hidden on touch (no keyboard). With only a handful
+  of calculators a search box was ceremony — this mirrors the static hub's
+  "the page *is* the directory" simplicity.
+- **Key collisions are out of scope** until the roster actually grows two
+  calculators with the same first letter; `keyFor` is one line and can grow a
+  fallback (e.g. position number) then.
 
 - **Inline registry**: the list of calculators lives in a `CALCULATOR_REGISTRY`
   array duplicated in every calculator page. Each entry is
