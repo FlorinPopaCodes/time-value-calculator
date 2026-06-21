@@ -9,7 +9,7 @@ shared command-palette switcher (open with the top pill, `/`, or `⌘K`).
 | Time Value | `time-value/` | How much can you spend to save time? | [tv.napkin.florinpopa.dev](https://tv.napkin.florinpopa.dev) |
 | Kelly Stake | `kelly/` | How much should you bet? (Kelly) | [kelly.napkin.florinpopa.dev](https://kelly.napkin.florinpopa.dev) |
 | Expected Value | `ev/` | What is a bet worth, in cash? | [ev.napkin.florinpopa.dev](https://ev.napkin.florinpopa.dev) |
-| Growth Curve | `compound/` | Where does your weekly growth rate land you? | [compound.napkin.florinpopa.dev](https://compound.napkin.florinpopa.dev) |
+| Growth Curve | `growth/` | Where does your weekly growth rate land you? | [growth.napkin.florinpopa.dev](https://growth.napkin.florinpopa.dev) |
 | Hub | `napkin/` | Plain fallback index of the suite | [napkin.florinpopa.dev](https://napkin.florinpopa.dev) |
 
 ## Structure

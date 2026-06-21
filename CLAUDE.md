@@ -11,7 +11,7 @@ Calculators today:
   efficient before I'm spending more than I'd generate?"
 - **Kelly Stake** (`kelly/`) — Kelly-criterion stake sizing (bankroll + fraction).
 - **Expected Value** (`ev/`) — expected value of a stake (`stake × edge`).
-- **Growth Curve** (`compound/`) — how many times your MRR multiplies across a
+- **Growth Curve** (`growth/`) — how many times your MRR multiplies across a
   grid of weekly growth rates × horizons (`(1 + weekly rate) ^ weeks`). The
   multiple is starting-point-independent, so there's no input — it's a universal
   reference table, heat-shaded by magnitude.
@@ -26,7 +26,7 @@ Calculators today:
 time-value/index.html    # Time Value calculator (HTML + CSS + JS, no build step)
 kelly/index.html         # Kelly Stake calculator (HTML + CSS + JS, no build step)
 ev/index.html            # Expected Value calculator (HTML + CSS + JS, no build step)
-compound/index.html      # Growth Curve calculator (HTML + CSS + JS, no build step)
+growth/index.html      # Growth Curve calculator (HTML + CSS + JS, no build step)
 napkin/index.html        # Hub: fallback index of the whole suite (static, no JS)
 PRODUCT.md               # Strategic context (impeccable)
 ```
@@ -130,7 +130,7 @@ is the explosive one.
 
 - Hosted on Cloudflare Pages with GitHub integration
 - **One Pages project per folder**, each with its **root directory** set to that
-  folder (e.g. `time-value/`, `kelly/`, `ev/`, `compound/`, `napkin/`)
+  folder (e.g. `time-value/`, `kelly/`, `ev/`, `growth/`, `napkin/`)
 - Build command: `exit 0` (static files, no build); output directory: `/`
 - Subdomains (canonical URLs; keep in sync with each page's
   `CALCULATOR_REGISTRY` and the hub list). Every calculator is nested **under the
@@ -139,7 +139,7 @@ is the explosive one.
   - Time Value → `tv.napkin.florinpopa.dev` *(live)*
   - Kelly Stake → `kelly.napkin.florinpopa.dev` *(set up when deploying)*
   - Expected Value → `ev.napkin.florinpopa.dev` *(set up when deploying)*
-  - Growth Curve → `compound.napkin.florinpopa.dev` *(set up when deploying)*
+  - Growth Curve → `growth.napkin.florinpopa.dev` *(set up when deploying)*
   - Hub → `napkin.florinpopa.dev` *(set up when deploying)*
 - ⚠️ Nesting note: hosts are **two levels deep** (`tv.napkin.…`, not `tv.…`).
   Cloudflare's free Universal SSL only covers `florinpopa.dev` + `*.florinpopa.dev`
@@ -166,7 +166,7 @@ through Time Value, automation lost to clicking by an order of magnitude. The
 six dashboard steps per project (do them by hand):
 
 1. **Create a Pages project**, connect this GitHub repo.
-2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `compound/`, `napkin/`).
+2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `growth/`, `napkin/`).
 3. **Build command** `exit 0`.
 4. **Output directory** `/`.
 5. **Add a custom domain** (e.g. `tv.napkin.florinpopa.dev`). Because the
