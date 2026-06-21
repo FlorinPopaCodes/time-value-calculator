@@ -9,13 +9,19 @@ separately. A shared switcher ties them together as a discoverable family.
 Calculators today:
 - **Time Value** (`time-value/`) — "How much can I spend making a task more
   efficient before I'm spending more than I'd generate?"
-- **Bet Sizing** (`bet-sizing/`) — Kelly-criterion stake sizing.
+- **Kelly Stake** (`kelly/`) — Kelly-criterion stake sizing (bankroll + fraction).
+- **Expected Value** (`ev/`) — expected value of a stake (`stake × edge`).
+
+> The two betting calcs were split out of a single combined "Bet Sizing" page:
+> Kelly answers *how much to bet*, EV answers *what a bet is worth*. They share
+> the same probability × odds grid and `edge = p × (odds + 1) − 1`.
 
 ## Architecture
 
 ```
 time-value/index.html    # Time Value calculator (HTML + CSS + JS, no build step)
-bet-sizing/index.html    # Bet Sizing calculator (HTML + CSS + JS, no build step)
+kelly/index.html         # Kelly Stake calculator (HTML + CSS + JS, no build step)
+ev/index.html            # Expected Value calculator (HTML + CSS + JS, no build step)
 napkin/index.html        # Hub: fallback index of the whole suite (static, no JS)
 PRODUCT.md               # Strategic context (impeccable)
 ```
@@ -93,16 +99,21 @@ Where `Time Freed Per Year = seconds saved × occurrences per year`
 
 - Hosted on Cloudflare Pages with GitHub integration
 - **One Pages project per folder**, each with its **root directory** set to that
-  folder (e.g. `time-value/`, `bet-sizing/`, `napkin/`)
+  folder (e.g. `time-value/`, `kelly/`, `ev/`, `napkin/`)
 - Build command: `exit 0` (static files, no build); output directory: `/`
 - Subdomains (canonical URLs; keep in sync with each page's
   `CALCULATOR_REGISTRY` and the hub list):
   - Time Value → `tvc.florinpopa.dev`
-  - Bet Sizing → `bet-sizing.florinpopa.dev` *(set up when deploying)*
+  - Kelly Stake → `kelly.florinpopa.dev` *(set up when deploying)*
+  - Expected Value → `ev.florinpopa.dev` *(set up when deploying)*
   - Hub → `napkin.florinpopa.dev` *(set up when deploying)*
 - ⚠️ Restructure note: Time Value moved from repo root to `time-value/`. Its
   existing Pages project must have its **root directory updated to `time-value/`**
   or the deploy will 404.
+- ⚠️ Split note: the combined `bet-sizing/` page was removed in favour of
+  `kelly/` + `ev/`. If a `bet-sizing.florinpopa.dev` Pages project was ever
+  created, delete it (or redirect it); create fresh projects for `kelly/` and
+  `ev/`.
 
 ### Provisioning is manual — on purpose
 
@@ -114,7 +125,7 @@ through Time Value, automation lost to clicking by an order of magnitude. The
 six dashboard steps per project (do them by hand):
 
 1. **Create a Pages project**, connect this GitHub repo.
-2. Set **root directory** to the folder (`time-value/`, `bet-sizing/`, `napkin/`).
+2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `napkin/`).
 3. **Build command** `exit 0`.
 4. **Output directory** `/`.
 5. **Add a custom domain** (e.g. `napkin.florinpopa.dev`). Because the
