@@ -1,25 +1,24 @@
-# Time Value Calculator
+# Calculators
 
-How much can you spend to save time? Is it worth it to automate it or delegate it?
+A small suite of single-purpose decision calculators. Each one is a standalone,
+dependency-free HTML page deployed to its own subdomain, tied together by a
+shared command-palette switcher (open with the top pill, `/`, or `⌘K`).
 
-A single-file tool that calculates how much you can justify spending to make a task more efficient, before you're spending more than you'd generate.
+| Calculator | Folder | Question | Live |
+|---|---|---|---|
+| Time Value | `time-value/` | How much can you spend to save time? | [tvc.florinpopa.dev](https://tvc.florinpopa.dev) |
+| Bet Sizing | `bet-sizing/` | How much should you bet? (Kelly) | bet-sizing.florinpopa.dev |
 
-**Live:** [tvc.florinpopa.dev](https://tvc.florinpopa.dev)
+## Structure
 
-## Formula
+One folder per calculator, each its own Cloudflare Pages project / subdomain. No
+build step, no dependencies, inline CSS + JS. See [CLAUDE.md](CLAUDE.md) for the
+switcher registry and how to add a calculator.
+
+## Time Value formula
 
 ```
 Value = (Annual Income / 2,080 hours) × Time Saved × Occurrences Per Year
 ```
 
-## Features
-
-- Single HTML file, no build step, no dependencies
-- Salary persisted to localStorage (never in URL)
-- Live calculation as you type
-- Grayed-out cells for absurd values (too small or physically impossible)
-- Mobile-friendly
-
-## Inspired by
-
-[XKCD 1205: Is It Worth the Time?](https://xkcd.com/1205/)
+Inspired by [XKCD 1205: Is It Worth the Time?](https://xkcd.com/1205/)
