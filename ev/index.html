@@ -646,12 +646,18 @@
                         desc: "What a bet is worth, in cash.",
                         url: "https://ev.napkin.florinpopa.dev",
                     },
+                    {
+                        id: "compound",
+                        name: "Growth Curve",
+                        desc: "What a weekly growth rate compounds into.",
+                        url: "https://compound.napkin.florinpopa.dev",
+                    },
                 ];
 
                 const trigger = document.getElementById("sw-open");
                 if (!trigger) return;
                 // Each calculator's jump key is the first letter of its name
-                // (T/K/E today, all unique). Collisions are out of scope until
+                // (T/K/E/G today, all unique). Collisions are out of scope until
                 // the roster actually grows one.
                 const keyFor = (c) => c.name[0].toUpperCase();
 
