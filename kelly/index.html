@@ -338,17 +338,6 @@
                 overflow: hidden;
                 animation: sw-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
             }
-            .sw-panel input {
-                width: 100%;
-                border: none;
-                border-bottom: 1px solid #e5e5e5;
-                padding: 0.9rem 1.05rem;
-                font: inherit;
-                font-size: 1rem;
-            }
-            .sw-panel input:focus {
-                outline: none;
-            }
             .sw-results {
                 max-height: 320px;
                 overflow-y: auto;
@@ -356,7 +345,7 @@
             }
             .sw-row {
                 display: flex;
-                align-items: baseline;
+                align-items: center;
                 justify-content: space-between;
                 gap: 1rem;
                 padding: 0.6rem 0.75rem;
@@ -365,12 +354,16 @@
                 color: inherit;
                 text-decoration: none;
             }
-            .sw-row:hover,
-            .sw-row.sw-cursor {
+            .sw-row:hover {
                 background: #f4f7fb;
             }
             .sw-row.sw-active {
                 cursor: default;
+            }
+            .sw-text {
+                display: flex;
+                flex-direction: column;
+                gap: 0.1rem;
             }
             .sw-row .sw-name {
                 font-size: 0.92rem;
@@ -384,11 +377,15 @@
                 font-size: 0.78rem;
                 color: #999;
             }
-            .sw-empty {
-                padding: 1.1rem;
-                text-align: center;
-                color: #999;
-                font-size: 0.85rem;
+            .sw-row kbd {
+                flex: 0 0 auto;
+                font-family: ui-monospace, monospace;
+                font-size: 0.72rem;
+                background: #fafafa;
+                border: 1px solid #e5e5e5;
+                border-radius: 5px;
+                padding: 0.1rem 0.45rem;
+                color: #6e6e6e;
             }
             @keyframes sw-in {
                 from {
@@ -405,7 +402,8 @@
                     width: 100%;
                     justify-content: center;
                 }
-                .sw-trigger kbd {
+                .sw-trigger kbd,
+                .sw-row kbd {
                     display: none;
                 }
                 .sw-overlay {
@@ -725,46 +723,26 @@
 
                 const trigger = document.getElementById("sw-open");
                 if (!trigger) return;
-                const isTouch = window.matchMedia("(pointer: coarse)").matches;
-                let query = "";
-                let cursor = 0;
-
-                const matches = () =>
-                    CALCULATOR_REGISTRY.filter(
-                        (c) =>
-                            c.name.toLowerCase().includes(query) ||
-                            c.desc.toLowerCase().includes(query),
-                    );
-                const firstCursor = (list) => {
-                    const i = list.findIndex((c) => c.id !== CURRENT);
-                    return i === -1 ? 0 : i;
-                };
+                // Each calculator's jump key is the first letter of its name
+                // (T/K/E today, all unique). Collisions are out of scope until
+                // the roster actually grows one.
+                const keyFor = (c) => c.name[0].toUpperCase();
 
                 function draw() {
                     let ov = document.getElementById("sw-overlay");
-                    const prev = ov && ov.querySelector("input");
-                    const hadFocus = prev && document.activeElement === prev;
-                    const list = matches();
-                    const rows = list.length
-                        ? list
-                              .map((c, i) => {
-                                  const active = c.id === CURRENT;
-                                  const cls =
-                                      "sw-row" +
-                                      (i === cursor ? " sw-cursor" : "") +
-                                      (active ? " sw-active" : "");
-                                  const body =
-                                      `<span class="sw-name">${c.name}</span>` +
-                                      `<span class="sw-desc">${active ? "you're here" : c.desc}</span>`;
-                                  return active
-                                      ? `<span class="${cls}">${body}</span>`
-                                      : `<a class="${cls}" href="${c.url}">${body}</a>`;
-                              })
-                              .join("")
-                        : `<div class="sw-empty">No calculators match "${query}".</div>`;
+                    const rows = CALCULATOR_REGISTRY.map((c) => {
+                        const active = c.id === CURRENT;
+                        const text =
+                            `<span class="sw-text">` +
+                            `<span class="sw-name">${c.name}</span>` +
+                            `<span class="sw-desc">${active ? "you're here" : c.desc}</span>` +
+                            `</span>`;
+                        return active
+                            ? `<span class="sw-row sw-active">${text}</span>`
+                            : `<a class="sw-row" href="${c.url}">${text}<kbd>${keyFor(c)}</kbd></a>`;
+                    }).join("");
                     const html =
-                        `<div class="sw-panel"><input placeholder="Search calculators…" value="${query}" aria-label="Search calculators">` +
-                        `<div class="sw-results">${rows}</div></div>`;
+                        `<div class="sw-panel"><div class="sw-results">${rows}</div></div>`;
                     if (!ov) {
                         ov = document.createElement("div");
                         ov.id = "sw-overlay";
@@ -775,38 +753,9 @@
                         });
                     }
                     ov.innerHTML = html;
-                    const input = ov.querySelector("input");
-                    if (!isTouch || hadFocus) {
-                        input.focus();
-                        input.setSelectionRange(query.length, query.length);
-                    }
-                    input.addEventListener("input", (e) => {
-                        query = e.target.value.toLowerCase();
-                        cursor = firstCursor(matches());
-                        draw();
-                    });
-                    input.addEventListener("keydown", (e) => {
-                        const m = matches();
-                        if (e.key === "ArrowDown") {
-                            e.preventDefault();
-                            cursor = Math.min(cursor + 1, m.length - 1);
-                            draw();
-                        } else if (e.key === "ArrowUp") {
-                            e.preventDefault();
-                            cursor = Math.max(cursor - 1, 0);
-                            draw();
-                        } else if (e.key === "Enter" && m[cursor]) {
-                            if (m[cursor].id !== CURRENT)
-                                window.location.href = m[cursor].url;
-                        } else if (e.key === "Escape") {
-                            close();
-                        }
-                    });
                 }
 
                 function open() {
-                    query = "";
-                    cursor = firstCursor(CALCULATOR_REGISTRY);
                     draw();
                 }
                 function close() {
@@ -825,9 +774,23 @@
                     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
                         e.preventDefault();
                         isOpen ? close() : open();
-                    } else if (e.key === "/" && !typing && !isOpen) {
+                    } else if (!isOpen && e.key === "/" && !typing) {
                         e.preventDefault();
                         open();
+                    } else if (isOpen) {
+                        if (e.key === "Escape") {
+                            close();
+                        } else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+                            const target = CALCULATOR_REGISTRY.find(
+                                (c) =>
+                                    c.id !== CURRENT &&
+                                    keyFor(c) === e.key.toUpperCase(),
+                            );
+                            if (target) {
+                                e.preventDefault();
+                                window.location.href = target.url;
+                            }
+                        }
                     }
                 });
             })();
