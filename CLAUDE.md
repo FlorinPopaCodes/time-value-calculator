@@ -11,6 +11,10 @@ Calculators today:
   efficient before I'm spending more than I'd generate?"
 - **Kelly Stake** (`kelly/`) — Kelly-criterion stake sizing (bankroll + fraction).
 - **Expected Value** (`ev/`) — expected value of a stake (`stake × edge`).
+- **Growth Curve** (`growth/`) — how many times your MRR multiplies across a
+  grid of weekly growth rates × horizons (`(1 + weekly rate) ^ weeks`). The
+  multiple is starting-point-independent, so there's no input — it's a universal
+  reference table, heat-shaded by magnitude.
 
 > The two betting calcs were split out of a single combined "Bet Sizing" page:
 > Kelly answers *how much to bet*, EV answers *what a bet is worth*. They share
@@ -22,6 +26,7 @@ Calculators today:
 time-value/index.html    # Time Value calculator (HTML + CSS + JS, no build step)
 kelly/index.html         # Kelly Stake calculator (HTML + CSS + JS, no build step)
 ev/index.html            # Expected Value calculator (HTML + CSS + JS, no build step)
+growth/index.html      # Growth Curve calculator (HTML + CSS + JS, no build step)
 napkin/index.html        # Hub: fallback index of the whole suite (static, no JS)
 PRODUCT.md               # Strategic context (impeccable)
 ```
@@ -55,7 +60,7 @@ Every page carries an identical switcher (the `.sw-*` CSS block + the trailing
 
 - **Letters-only jump, no search box.** The open panel is a plain keyed list,
   not a search input: each sibling row shows a `kbd` badge with its jump key
-  (the first letter of its name — `T`/`K`/`E` today, all unique), and pressing
+  (the first letter of its name — `T`/`K`/`E`/`G` today, all unique), and pressing
   that letter navigates immediately. `Esc` closes. Rows stay real `<a>` links,
   so `Tab`+`Enter` (and screen readers) work natively without our own arrow/
   cursor handling. Keys are hidden on touch (no keyboard). With only a handful
@@ -106,11 +111,26 @@ Justified Spend = (Annual Income / 2,080 working hours) × Time Freed Per Year
 
 Where `Time Freed Per Year = seconds saved × occurrences per year`
 
+Growth Curve shows the **multiple** weekly compounding yields across the grid:
+
+```
+Multiple = (1 + weekly rate) ^ weeks    (weeks = months × 52/12)
+```
+
+There's no MRR in the formula — the multiple is starting-point-independent, so
+the page takes **no input**; it's a universal reference table, the same for
+everyone. Each cell is heat-shaded on a log scale (pale `1×` → deepest brand-blue
+at the explosive corner) so the bend in the curve is visible without reading
+every number. Cells past **1e9× (a billion-fold)** show `1B×+` at the deepest
+tint — the peak of the ramp, not a grayed-out dead cell. Unlike Time Value there
+is no negligible gray; every positive weekly rate beats it, so the only extreme
+is the explosive one.
+
 ## Deployment
 
 - Hosted on Cloudflare Pages with GitHub integration
 - **One Pages project per folder**, each with its **root directory** set to that
-  folder (e.g. `time-value/`, `kelly/`, `ev/`, `napkin/`)
+  folder (e.g. `time-value/`, `kelly/`, `ev/`, `growth/`, `napkin/`)
 - Build command: `exit 0` (static files, no build); output directory: `/`
 - Subdomains (canonical URLs; keep in sync with each page's
   `CALCULATOR_REGISTRY` and the hub list). Every calculator is nested **under the
@@ -119,6 +139,7 @@ Where `Time Freed Per Year = seconds saved × occurrences per year`
   - Time Value → `tv.napkin.florinpopa.dev` *(live)*
   - Kelly Stake → `kelly.napkin.florinpopa.dev` *(set up when deploying)*
   - Expected Value → `ev.napkin.florinpopa.dev` *(set up when deploying)*
+  - Growth Curve → `growth.napkin.florinpopa.dev` *(set up when deploying)*
   - Hub → `napkin.florinpopa.dev` *(set up when deploying)*
 - ⚠️ Nesting note: hosts are **two levels deep** (`tv.napkin.…`, not `tv.…`).
   Cloudflare's free Universal SSL only covers `florinpopa.dev` + `*.florinpopa.dev`
@@ -145,7 +166,7 @@ through Time Value, automation lost to clicking by an order of magnitude. The
 six dashboard steps per project (do them by hand):
 
 1. **Create a Pages project**, connect this GitHub repo.
-2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `napkin/`).
+2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `growth/`, `napkin/`).
 3. **Build command** `exit 0`.
 4. **Output directory** `/`.
 5. **Add a custom domain** (e.g. `tv.napkin.florinpopa.dev`). Because the

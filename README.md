@@ -9,6 +9,7 @@ shared command-palette switcher (open with the top pill, `/`, or `⌘K`).
 | Time Value | `time-value/` | How much can you spend to save time? | [tv.napkin.florinpopa.dev](https://tv.napkin.florinpopa.dev) |
 | Kelly Stake | `kelly/` | How much should you bet? (Kelly) | [kelly.napkin.florinpopa.dev](https://kelly.napkin.florinpopa.dev) |
 | Expected Value | `ev/` | What is a bet worth, in cash? | [ev.napkin.florinpopa.dev](https://ev.napkin.florinpopa.dev) |
+| Growth Curve | `growth/` | Where does your weekly growth rate land you? | [growth.napkin.florinpopa.dev](https://growth.napkin.florinpopa.dev) |
 | Hub | `napkin/` | Plain fallback index of the suite | [napkin.florinpopa.dev](https://napkin.florinpopa.dev) |
 
 ## Structure
@@ -24,3 +25,15 @@ Value = (Annual Income / 2,080 hours) × Time Saved × Occurrences Per Year
 ```
 
 Inspired by [XKCD 1205: Is It Worth the Time?](https://xkcd.com/1205/)
+
+## Growth Curve formula
+
+```
+Multiple = (1 + weekly rate) ^ weeks    (weeks = months × 52/12)
+```
+
+Each cell is how many times your MRR multiplies. The multiple is
+starting-point-independent (no MRR in the formula), so the grid takes no input —
+it's a universal reference, heat-shaded by magnitude.
+
+Inspired by Paul Graham's [Startup = Growth](https://paulgraham.com/growth.html)

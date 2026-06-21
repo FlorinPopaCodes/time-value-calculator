@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Expected Value Calculator</title>
+        <title>Growth Curve Calculator</title>
         <style>
             * {
                 box-sizing: border-box;
@@ -47,81 +47,14 @@
             .formula {
                 text-align: center;
                 font-family: ui-monospace, monospace;
-                font-size: 0.8rem;
+                font-size: 0.85rem;
                 color: #555;
                 background: #f0f0f0;
                 padding: 0.5rem 1rem;
                 border-radius: 4px;
                 margin-top: 2rem;
-                display: block;
+                display: inline-block;
                 width: 100%;
-                line-height: 1.8;
-            }
-
-            /* Controls: stake input */
-            .controls {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 1.25rem;
-                margin-bottom: 2rem;
-            }
-
-            .control-group {
-                display: flex;
-                align-items: center;
-                gap: 0.6rem;
-            }
-
-            .control-group label {
-                font-weight: 500;
-                color: #333;
-            }
-
-            .control-group input {
-                width: 140px;
-                padding: 0.5rem 0.75rem;
-                font-size: 1rem;
-                border: 2px solid #ddd;
-                border-radius: 6px;
-                text-align: right;
-                transition:
-                    border-color 0.2s,
-                    box-shadow 0.2s;
-                -moz-appearance: textfield;
-            }
-
-            .control-group input::-webkit-outer-spin-button,
-            .control-group input::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
-
-            .control-group .currency-suffix {
-                font-weight: 400;
-                color: #c2c2c2;
-            }
-
-            .control-group input:focus {
-                outline: none;
-                border-color: #4a90d9;
-                box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
-            }
-
-            .control-group input.highlight {
-                border-color: #4a90d9;
-                animation: pulse 2s ease-in-out infinite;
-            }
-
-            @keyframes pulse {
-                0%,
-                100% {
-                    box-shadow: 0 0 0 0 rgba(74, 144, 217, 0.3);
-                }
-                50% {
-                    box-shadow: 0 0 0 6px rgba(74, 144, 217, 0);
-                }
             }
 
             .table-wrapper {
@@ -152,13 +85,13 @@
             th {
                 background: #f5f5f5;
                 font-weight: 500;
-                color: #6e6e6e;
+                color: #5e5e5e;
             }
 
             .row-header {
                 text-align: right;
                 font-weight: 500;
-                color: #6e6e6e;
+                color: #5e5e5e;
                 background: #f5f5f5;
                 white-space: nowrap;
                 padding-right: 1rem;
@@ -171,16 +104,20 @@
             .value-cell {
                 font-family: ui-monospace, monospace;
                 font-weight: 500;
+                color: #1a1a1a;
             }
 
+            /* The explosive corner: off the charts. Deepest heat, not grayed —
+               it's the peak of the ramp, not a dead cell. */
             .absurd {
-                background: #f0f0f0;
-                color: #aaa;
+                background: rgba(74, 144, 217, 0.68);
+                color: #10243f;
+                font-weight: 600;
             }
 
             .axis-label {
                 font-size: 0.7rem;
-                color: #888;
+                color: #6e6e6e;
                 font-weight: 400;
                 display: block;
             }
@@ -188,7 +125,7 @@
             /* Axis bands: compact labels at the table edges */
             .band-th {
                 background: #f5f5f5;
-                color: #888;
+                color: #6e6e6e;
                 font-weight: 600;
                 font-size: 0.7rem;
                 letter-spacing: 0.04em;
@@ -198,7 +135,7 @@
 
             .rowaxis-th {
                 background: #f5f5f5;
-                color: #888;
+                color: #6e6e6e;
                 font-weight: 600;
                 font-size: 0.7rem;
                 letter-spacing: 0.04em;
@@ -212,28 +149,6 @@
                 transform: rotate(180deg);
                 white-space: nowrap;
                 margin: 0 auto;
-            }
-
-            /* Muted currency symbol */
-            .cur {
-                color: #c2c2c2;
-                font-weight: 400;
-            }
-
-            /* Empty state: shown when no valid stake is entered */
-            .empty-state {
-                padding: 2.75rem 1.25rem;
-                text-align: center;
-                color: #888;
-                font-size: 0.9rem;
-                line-height: 1.6;
-            }
-
-            .empty-state strong {
-                display: block;
-                color: #555;
-                font-weight: 600;
-                margin-bottom: 0.2rem;
             }
 
             footer {
@@ -410,42 +325,39 @@
                         <circle cx="11" cy="11" r="7"></circle>
                         <path d="m21 21-4.3-4.3"></path>
                     </svg>
-                    <span class="sw-cur" id="sw-cur">Expected Value</span>
+                    <span class="sw-cur" id="sw-cur">Growth Curve</span>
                     <span>· switch</span>
                     <kbd>/</kbd>
                 </button>
             </nav>
 
-            <h1>What's the bet worth?</h1>
+            <h1>Where does your weekly growth rate land you?</h1>
             <p class="subtitle">
-                The expected value of a stake, before you place it.
+                A few points a week is the gap between a lifestyle business and
+                a rocket.
             </p>
-
-            <div class="controls">
-                <div class="control-group">
-                    <label for="stake">Stake:</label>
-                    <input
-                        type="number"
-                        id="stake"
-                        min="0"
-                        step="100"
-                        placeholder="1000"
-                        title="A round 1,000 to start. Type your own."
-                    /><span class="currency-suffix">¤</span>
-                </div>
-            </div>
 
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
-                            <th class="corner-cell" colspan="2" rowspan="2">
-                                <span class="axis-label">per bet</span>
+                            <th
+                                class="corner-cell"
+                                colspan="2"
+                                rowspan="2"
+                            >
+                                <span class="axis-label">multiplies</span>
                             </th>
-                            <th class="band-th" colspan="6">Payout odds</th>
+                            <th class="band-th" colspan="7">Weekly growth</th>
                         </tr>
-                        <tr id="odds-header">
-                            <!-- Populated by JavaScript -->
+                        <tr>
+                            <th>1%</th>
+                            <th>3%</th>
+                            <th>5%</th>
+                            <th>7%</th>
+                            <th>10%</th>
+                            <th>15%</th>
+                            <th>20%</th>
                         </tr>
                     </thead>
                     <tbody id="grid-body">
@@ -454,171 +366,112 @@
                 </table>
             </div>
 
-            <div class="formula" id="formula">
-                <!-- Populated by JavaScript -->
+            <div class="formula">
+                (1 + weekly rate) ^ weeks
             </div>
 
             <footer>
-                Shows
+                Inspired by Paul Graham's
                 <a
-                    href="https://en.wikipedia.org/wiki/Expected_value"
+                    href="https://paulgraham.com/growth.html"
                     target="_blank"
                     rel="noopener"
-                    >expected value</a
-                >. ¤ is a universal currency symbol.<br />
-                Not betting advice. Your probability is a guess; the math only
-                multiplies by it.<br />
+                    >“Startup = Growth”</a
+                >. Every cell is a multiple of your starting MRR.<br />
                 Made by
-                <a href="https://florinpopa.dev/" target="_blank" rel="noopener"
+                <a
+                    href="https://florinpopa.dev/"
+                    target="_blank"
+                    rel="noopener"
                     >Florin Popa</a
                 >.
             </footer>
         </div>
 
         <script>
-            const KEY_STAKE = "evCalculator_stake";
+            const WEEKS_PER_MONTH = 52 / 12;
+            // A billion-fold is past the napkin — the corner is "off the charts".
+            const ABSURD = 1e9;
 
-            const DEFAULT_STAKE = 1000;
-
-            // Payout odds (net, "b to 1"), ascending left -> right
-            const ODDS = [
-                { label: "1:1", b: 1 },
-                { label: "2:1", b: 2 },
-                { label: "3:1", b: 3 },
-                { label: "5:1", b: 5 },
-                { label: "10:1", b: 10 },
-                { label: "20:1", b: 20 },
+            // Weekly growth rates (columns) and horizons in months (rows).
+            const RATES = [
+                { label: "1%", rate: 0.01 },
+                { label: "3%", rate: 0.03 },
+                { label: "5%", rate: 0.05 },
+                { label: "7%", rate: 0.07 },
+                { label: "10%", rate: 0.1 },
+                { label: "15%", rate: 0.15 },
+                { label: "20%", rate: 0.2 },
             ];
 
-            // Win probability, ascending top -> bottom
-            const PROBS = [
-                { label: "5%", p: 0.05 },
-                { label: "10%", p: 0.1 },
-                { label: "20%", p: 0.2 },
-                { label: "30%", p: 0.3 },
-                { label: "40%", p: 0.4 },
-                { label: "50%", p: 0.5 },
-                { label: "60%", p: 0.6 },
-                { label: "75%", p: 0.75 },
-                { label: "90%", p: 0.9 },
+            const HORIZONS = [
+                { label: "1mo", months: 1 },
+                { label: "3mo", months: 3 },
+                { label: "6mo", months: 6 },
+                { label: "12mo", months: 12 },
+                { label: "24mo", months: 24 },
+                { label: "36mo", months: 36 },
             ];
 
-            const stakeInput = document.getElementById("stake");
-            const oddsHeader = document.getElementById("odds-header");
             const gridBody = document.getElementById("grid-body");
-            const formulaEl = document.getElementById("formula");
 
-            const CUR = '<span class="cur">¤</span>';
-
-            function loadInt(key) {
-                const saved = localStorage.getItem(key);
-                return saved ? parseInt(saved, 10) : null;
+            // The multiple is starting-point-independent: (1 + rate) ^ weeks has
+            // no MRR in it, so the grid is the same for everyone — a universal
+            // reference, hence no input to type.
+            function multiple(weeklyRate, months) {
+                return Math.pow(1 + weeklyRate, months * WEEKS_PER_MONTH);
             }
 
-            function formatCurrency(value) {
-                if (value < 1) return "0" + CUR;
-                if (value >= 1000) {
-                    const k = value / 1000;
-                    return (
-                        (k >= 100
-                            ? Math.round(k)
-                            : k.toFixed(1).replace(/\.0$/, "")) +
-                        "k" +
-                        CUR
-                    );
+            function formatMultiple(m) {
+                if (m < 100) return m.toFixed(1).replace(/\.0$/, "") + "×";
+                if (m < 1000) return Math.round(m) + "×";
+                const units = [
+                    { div: 1e9, suffix: "B" },
+                    { div: 1e6, suffix: "M" },
+                    { div: 1e3, suffix: "k" },
+                ];
+                for (const u of units) {
+                    if (m >= u.div) {
+                        const n = m / u.div;
+                        return (
+                            (n >= 100
+                                ? Math.round(n)
+                                : n.toFixed(1).replace(/\.0$/, "")) +
+                            u.suffix +
+                            "×"
+                        );
+                    }
                 }
-                return Math.round(value) + CUR;
             }
 
-            // edge = expected profit per 1 staked
-            function edgeOf(p, b) {
-                return p * (b + 1) - 1;
-            }
-
-            // Expected value in currency for a given stake
-            function evOf(stake, p, b) {
-                return stake * edgeOf(p, b);
-            }
-
-            function renderOddsHeader() {
-                oddsHeader.innerHTML = ODDS.map(
-                    (o) => `<th>${o.label}</th>`,
-                ).join("");
-            }
-
-            function renderFormula() {
-                formulaEl.innerHTML =
-                    "edge = p × (odds + 1) − 1 &nbsp;·&nbsp; " +
-                    "EV = stake × edge";
-            }
-
-            function renderEmptyState() {
-                const cols = ODDS.length + 2;
-                gridBody.innerHTML =
-                    `<tr><td class="empty-state" colspan="${cols}">` +
-                    "<strong>Enter your stake above.</strong>" +
-                    "Then see the expected value of each edge." +
-                    "</td></tr>";
+            // Log-scale heat: pale at 1×, deepest brand-blue toward the
+            // explosive corner. Magnitude is the data; the tint just makes the
+            // bend in the curve visible without reading every cell.
+            function heat(m) {
+                const t = Math.max(0, Math.min(1, Math.log10(m) / 9));
+                return `background:rgba(74, 144, 217, ${(t * 0.6).toFixed(3)})`;
             }
 
             function renderGrid() {
-                const raw = stakeInput.value.trim();
-                const stake = parseInt(raw, 10);
-
-                if (!raw || isNaN(stake) || stake <= 0) {
-                    renderEmptyState();
-                    return;
-                }
-
-                gridBody.innerHTML = PROBS.map((row, i) => {
-                    const cells = ODDS.map((col) => {
-                        const edge = edgeOf(row.p, col.b);
-                        const ev = evOf(stake, row.p, col.b);
-
-                        // Gray out: no edge, or an EV too small to matter
-                        const absurd = edge <= 0 || ev < 1;
-                        if (absurd) {
-                            return `<td class="value-cell absurd"></td>`;
+                gridBody.innerHTML = HORIZONS.map((horizon, i) => {
+                    const cells = RATES.map((col) => {
+                        const m = multiple(col.rate, horizon.months);
+                        if (m >= ABSURD) {
+                            return `<td class="value-cell absurd">1B×+</td>`;
                         }
-
-                        return `<td class="value-cell">+${formatCurrency(ev)}</td>`;
+                        return `<td class="value-cell" style="${heat(m)}">${formatMultiple(m)}</td>`;
                     }).join("");
 
                     const rail =
                         i === 0
-                            ? `<th class="rowaxis-th" rowspan="${PROBS.length}"><span class="rowaxis-label">Win probability</span></th>`
+                            ? `<th class="rowaxis-th" rowspan="${HORIZONS.length}"><span class="rowaxis-label">Horizon</span></th>`
                             : "";
 
-                    return `<tr>${rail}<td class="row-header">${row.label}</td>${cells}</tr>`;
+                    return `<tr>${rail}<td class="row-header">${horizon.label}</td>${cells}</tr>`;
                 }).join("");
             }
 
-            // Initialize
-            const savedStake = loadInt(KEY_STAKE);
-            if (savedStake !== null) {
-                stakeInput.value = savedStake;
-            } else {
-                stakeInput.value = DEFAULT_STAKE;
-                stakeInput.classList.add("highlight");
-            }
-
-            renderOddsHeader();
-            renderFormula();
             renderGrid();
-
-            // Event listeners
-            stakeInput.addEventListener("input", () => {
-                stakeInput.classList.remove("highlight");
-                const value = parseInt(stakeInput.value, 10);
-                if (value > 0) {
-                    localStorage.setItem(KEY_STAKE, value.toString());
-                }
-                renderGrid();
-            });
-
-            stakeInput.addEventListener("focus", () => {
-                stakeInput.classList.remove("highlight");
-            });
         </script>
 
         <script>
@@ -626,7 +479,7 @@
             // To add a calculator: append it to CALCULATOR_REGISTRY here AND in every sibling page.
             // URLs are absolute because each calculator is its own subdomain.
             (function () {
-                const CURRENT = "ev";
+                const CURRENT = "growth";
                 const CALCULATOR_REGISTRY = [
                     {
                         id: "time-value",
