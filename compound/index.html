@@ -57,64 +57,6 @@
                 width: 100%;
             }
 
-            .input-section {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.75rem;
-                margin-bottom: 2rem;
-            }
-
-            .input-section label {
-                font-weight: 500;
-                color: #333;
-            }
-
-            .input-section input {
-                width: 140px;
-                padding: 0.5rem 0.75rem;
-                font-size: 1rem;
-                border: 2px solid #ddd;
-                border-radius: 6px;
-                text-align: right;
-                transition:
-                    border-color 0.2s,
-                    box-shadow 0.2s;
-                -moz-appearance: textfield;
-            }
-
-            .input-section input::-webkit-outer-spin-button,
-            .input-section input::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
-
-            .input-section .currency-suffix {
-                font-weight: 400;
-                color: #c2c2c2;
-            }
-
-            .input-section input:focus {
-                outline: none;
-                border-color: #4a90d9;
-                box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
-            }
-
-            .input-section input.highlight {
-                border-color: #4a90d9;
-                animation: pulse 2s ease-in-out infinite;
-            }
-
-            @keyframes pulse {
-                0%,
-                100% {
-                    box-shadow: 0 0 0 0 rgba(74, 144, 217, 0.3);
-                }
-                50% {
-                    box-shadow: 0 0 0 6px rgba(74, 144, 217, 0);
-                }
-            }
-
             .table-wrapper {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
@@ -143,13 +85,13 @@
             th {
                 background: #f5f5f5;
                 font-weight: 500;
-                color: #6e6e6e;
+                color: #5e5e5e;
             }
 
             .row-header {
                 text-align: right;
                 font-weight: 500;
-                color: #6e6e6e;
+                color: #5e5e5e;
                 background: #f5f5f5;
                 white-space: nowrap;
                 padding-right: 1rem;
@@ -162,16 +104,20 @@
             .value-cell {
                 font-family: ui-monospace, monospace;
                 font-weight: 500;
+                color: #1a1a1a;
             }
 
+            /* The explosive corner: off the charts. Deepest heat, not grayed —
+               it's the peak of the ramp, not a dead cell. */
             .absurd {
-                background: #f0f0f0;
-                color: #aaa;
+                background: rgba(74, 144, 217, 0.68);
+                color: #10243f;
+                font-weight: 600;
             }
 
             .axis-label {
                 font-size: 0.7rem;
-                color: #888;
+                color: #6e6e6e;
                 font-weight: 400;
                 display: block;
             }
@@ -179,7 +125,7 @@
             /* Axis bands: compact labels at the table edges */
             .band-th {
                 background: #f5f5f5;
-                color: #888;
+                color: #6e6e6e;
                 font-weight: 600;
                 font-size: 0.7rem;
                 letter-spacing: 0.04em;
@@ -189,7 +135,7 @@
 
             .rowaxis-th {
                 background: #f5f5f5;
-                color: #888;
+                color: #6e6e6e;
                 font-weight: 600;
                 font-size: 0.7rem;
                 letter-spacing: 0.04em;
@@ -203,28 +149,6 @@
                 transform: rotate(180deg);
                 white-space: nowrap;
                 margin: 0 auto;
-            }
-
-            /* Muted currency symbol */
-            .cur {
-                color: #c2c2c2;
-                font-weight: 400;
-            }
-
-            /* Empty state: shown when no valid MRR is entered */
-            .empty-state {
-                padding: 2.75rem 1.25rem;
-                text-align: center;
-                color: #888;
-                font-size: 0.9rem;
-                line-height: 1.6;
-            }
-
-            .empty-state strong {
-                display: block;
-                color: #555;
-                font-weight: 600;
-                margin-bottom: 0.2rem;
             }
 
             footer {
@@ -413,18 +337,6 @@
                 a rocket.
             </p>
 
-            <div class="input-section">
-                <label for="mrr">Current MRR:</label>
-                <input
-                    type="number"
-                    id="mrr"
-                    min="0"
-                    step="100"
-                    placeholder="1024"
-                    title="1,024 to start. That's 2¹⁰, naturally. Type your own."
-                /><span class="currency-suffix">¤</span>
-            </div>
-
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -434,7 +346,7 @@
                                 colspan="2"
                                 rowspan="2"
                             >
-                                <span class="axis-label">grows to</span>
+                                <span class="axis-label">multiplies</span>
                             </th>
                             <th class="band-th" colspan="7">Weekly growth</th>
                         </tr>
@@ -455,7 +367,7 @@
             </div>
 
             <div class="formula">
-                MRR × (1 + weekly rate) ^ weeks
+                (1 + weekly rate) ^ weeks
             </div>
 
             <footer>
@@ -465,7 +377,7 @@
                     target="_blank"
                     rel="noopener"
                     >“Startup = Growth”</a
-                >. ¤ is a universal currency symbol.<br />
+                >. Every cell is a multiple of your starting MRR.<br />
                 Made by
                 <a
                     href="https://florinpopa.dev/"
@@ -477,11 +389,9 @@
         </div>
 
         <script>
-            const STORAGE_KEY = "compoundCalculator_mrr";
-            const DEFAULT_MRR = 1024;
             const WEEKS_PER_MONTH = 52 / 12;
-            // Past a trillion MRR you don't need a napkin — gray it out.
-            const ABSURD = 1e12;
+            // A billion-fold is past the napkin — the corner is "off the charts".
+            const ABSURD = 1e9;
 
             // Weekly growth rates (columns) and horizons in months (rows).
             const RATES = [
@@ -503,74 +413,53 @@
                 { label: "36mo", months: 36 },
             ];
 
-            const mrrInput = document.getElementById("mrr");
             const gridBody = document.getElementById("grid-body");
 
-            function loadMrr() {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                return saved ? parseInt(saved, 10) : null;
+            // The multiple is starting-point-independent: (1 + rate) ^ weeks has
+            // no MRR in it, so the grid is the same for everyone — a universal
+            // reference, hence no input to type.
+            function multiple(weeklyRate, months) {
+                return Math.pow(1 + weeklyRate, months * WEEKS_PER_MONTH);
             }
 
-            function saveMrr(value) {
-                localStorage.setItem(STORAGE_KEY, value.toString());
-            }
-
-            function calculateValue(mrr, weeklyRate, months) {
-                const weeks = months * WEEKS_PER_MONTH;
-                return mrr * Math.pow(1 + weeklyRate, weeks);
-            }
-
-            const CUR = '<span class="cur">¤</span>';
-
-            function formatCurrency(value) {
-                if (value < 1000) return Math.round(value) + CUR;
+            function formatMultiple(m) {
+                if (m < 100) return m.toFixed(1).replace(/\.0$/, "") + "×";
+                if (m < 1000) return Math.round(m) + "×";
                 const units = [
                     { div: 1e9, suffix: "B" },
                     { div: 1e6, suffix: "M" },
                     { div: 1e3, suffix: "k" },
                 ];
                 for (const u of units) {
-                    if (value >= u.div) {
-                        const n = value / u.div;
+                    if (m >= u.div) {
+                        const n = m / u.div;
                         return (
                             (n >= 100
                                 ? Math.round(n)
                                 : n.toFixed(1).replace(/\.0$/, "")) +
                             u.suffix +
-                            CUR
+                            "×"
                         );
                     }
                 }
             }
 
-            function renderEmptyState() {
-                const cols = RATES.length + 2;
-                gridBody.innerHTML =
-                    `<tr><td class="empty-state" colspan="${cols}">` +
-                    "<strong>Enter your current MRR above.</strong>" +
-                    "Then watch a few points of weekly growth diverge into wildly different companies." +
-                    "</td></tr>";
+            // Log-scale heat: pale at 1×, deepest brand-blue toward the
+            // explosive corner. Magnitude is the data; the tint just makes the
+            // bend in the curve visible without reading every cell.
+            function heat(m) {
+                const t = Math.max(0, Math.min(1, Math.log10(m) / 9));
+                return `background:rgba(74, 144, 217, ${(t * 0.6).toFixed(3)})`;
             }
 
             function renderGrid() {
-                const raw = mrrInput.value.trim();
-                const mrr = parseInt(raw, 10);
-
-                if (!raw || isNaN(mrr) || mrr <= 0) {
-                    renderEmptyState();
-                    return;
-                }
-
                 gridBody.innerHTML = HORIZONS.map((horizon, i) => {
                     const cells = RATES.map((col) => {
-                        const value = calculateValue(
-                            mrr,
-                            col.rate,
-                            horizon.months,
-                        );
-                        const absurd = value >= ABSURD;
-                        const formatted = absurd ? "1T+" : formatCurrency(value);
-                        return `<td class="value-cell ${absurd ? "absurd" : ""}">${formatted}</td>`;
+                        const m = multiple(col.rate, horizon.months);
+                        if (m >= ABSURD) {
+                            return `<td class="value-cell absurd">1B×+</td>`;
+                        }
+                        return `<td class="value-cell" style="${heat(m)}">${formatMultiple(m)}</td>`;
                     }).join("");
 
                     const rail =
@@ -582,30 +471,7 @@
                 }).join("");
             }
 
-            // Initialize
-            const savedMrr = loadMrr();
-            if (savedMrr !== null) {
-                mrrInput.value = savedMrr;
-            } else {
-                mrrInput.value = DEFAULT_MRR;
-                mrrInput.classList.add("highlight");
-            }
-
             renderGrid();
-
-            // Event listeners
-            mrrInput.addEventListener("input", () => {
-                mrrInput.classList.remove("highlight");
-                const value = parseInt(mrrInput.value, 10);
-                if (value > 0) {
-                    saveMrr(value);
-                }
-                renderGrid();
-            });
-
-            mrrInput.addEventListener("focus", () => {
-                mrrInput.classList.remove("highlight");
-            });
         </script>
 
         <script>

@@ -29,7 +29,11 @@ Inspired by [XKCD 1205: Is It Worth the Time?](https://xkcd.com/1205/)
 ## Growth Curve formula
 
 ```
-Value = MRR × (1 + weekly rate) ^ weeks    (weeks = months × 52/12)
+Multiple = (1 + weekly rate) ^ weeks    (weeks = months × 52/12)
 ```
+
+Each cell is how many times your MRR multiplies. The multiple is
+starting-point-independent (no MRR in the formula), so the grid takes no input —
+it's a universal reference, heat-shaded by magnitude.
 
 Inspired by Paul Graham's [Startup = Growth](https://paulgraham.com/growth.html)

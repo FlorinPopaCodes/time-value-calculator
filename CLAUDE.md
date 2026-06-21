@@ -11,8 +11,10 @@ Calculators today:
   efficient before I'm spending more than I'd generate?"
 - **Kelly Stake** (`kelly/`) — Kelly-criterion stake sizing (bankroll + fraction).
 - **Expected Value** (`ev/`) — expected value of a stake (`stake × edge`).
-- **Growth Curve** (`compound/`) — what a starting MRR compounds into across a
-  grid of weekly growth rates × horizons (`MRR × (1 + weekly rate) ^ weeks`).
+- **Growth Curve** (`compound/`) — how many times your MRR multiplies across a
+  grid of weekly growth rates × horizons (`(1 + weekly rate) ^ weeks`). The
+  multiple is starting-point-independent, so there's no input — it's a universal
+  reference table, heat-shaded by magnitude.
 
 > The two betting calcs were split out of a single combined "Bet Sizing" page:
 > Kelly answers *how much to bet*, EV answers *what a bet is worth*. They share
@@ -109,15 +111,20 @@ Justified Spend = (Annual Income / 2,080 working hours) × Time Freed Per Year
 
 Where `Time Freed Per Year = seconds saved × occurrences per year`
 
-Growth Curve compounds a starting MRR weekly across the grid:
+Growth Curve shows the **multiple** weekly compounding yields across the grid:
 
 ```
-Value = MRR × (1 + weekly rate) ^ weeks    (weeks = months × 52/12)
+Multiple = (1 + weekly rate) ^ weeks    (weeks = months × 52/12)
 ```
 
-Cells whose value reaches **1T¤** are grayed out as "absurd" (show `1T+`);
-unlike Time Value there is no negligible-growth gray — every positive weekly
-rate beats it, so the only absurd corner is the explosive one.
+There's no MRR in the formula — the multiple is starting-point-independent, so
+the page takes **no input**; it's a universal reference table, the same for
+everyone. Each cell is heat-shaded on a log scale (pale `1×` → deepest brand-blue
+at the explosive corner) so the bend in the curve is visible without reading
+every number. Cells past **1e9× (a billion-fold)** show `1B×+` at the deepest
+tint — the peak of the ramp, not a grayed-out dead cell. Unlike Time Value there
+is no negligible gray; every positive weekly rate beats it, so the only extreme
+is the explosive one.
 
 ## Deployment
 
