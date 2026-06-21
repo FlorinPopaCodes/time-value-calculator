@@ -237,10 +237,178 @@
             footer a {
                 color: #666;
             }
+
+            /* ---- Calculator switcher (shared across the suite) ---- */
+            .sw-bar {
+                text-align: center;
+                margin-bottom: 1.75rem;
+            }
+            .sw-trigger {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                min-height: 40px;
+                padding: 0.5rem 0.85rem;
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-radius: 8px;
+                cursor: pointer;
+                font: inherit;
+                font-size: 0.88rem;
+                color: #6e6e6e;
+                transition: border-color 0.15s;
+            }
+            .sw-trigger:hover {
+                border-color: #4a90d9;
+            }
+            .sw-trigger svg {
+                width: 15px;
+                height: 15px;
+                stroke: #999;
+                flex: 0 0 auto;
+            }
+            .sw-trigger .sw-cur {
+                color: #1a1a1a;
+                font-weight: 600;
+            }
+            .sw-trigger kbd {
+                font-family: ui-monospace, monospace;
+                font-size: 0.72rem;
+                background: #fafafa;
+                border: 1px solid #e5e5e5;
+                border-radius: 5px;
+                padding: 0.05rem 0.35rem;
+                color: #6e6e6e;
+            }
+            .sw-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 100;
+                background: rgba(26, 26, 26, 0.32);
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+                padding: 12vh 1rem 1rem;
+            }
+            .sw-panel {
+                width: 100%;
+                max-width: 460px;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+                overflow: hidden;
+                animation: sw-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+            }
+            .sw-panel input {
+                width: 100%;
+                border: none;
+                border-bottom: 1px solid #e5e5e5;
+                padding: 0.9rem 1.05rem;
+                font: inherit;
+                font-size: 1rem;
+            }
+            .sw-panel input:focus {
+                outline: none;
+            }
+            .sw-results {
+                max-height: 320px;
+                overflow-y: auto;
+                padding: 0.35rem;
+            }
+            .sw-row {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 0.6rem 0.75rem;
+                border-radius: 8px;
+                cursor: pointer;
+                color: inherit;
+                text-decoration: none;
+            }
+            .sw-row:hover,
+            .sw-row.sw-cursor {
+                background: #f4f7fb;
+            }
+            .sw-row.sw-active {
+                cursor: default;
+            }
+            .sw-row .sw-name {
+                font-size: 0.92rem;
+                font-weight: 600;
+                color: #1a1a1a;
+            }
+            .sw-row.sw-active .sw-name {
+                color: #4a90d9;
+            }
+            .sw-row .sw-desc {
+                font-size: 0.78rem;
+                color: #999;
+            }
+            .sw-empty {
+                padding: 1.1rem;
+                text-align: center;
+                color: #999;
+                font-size: 0.85rem;
+            }
+            @keyframes sw-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: none;
+                }
+            }
+            @media (max-width: 560px) {
+                .sw-trigger {
+                    width: 100%;
+                    justify-content: center;
+                }
+                .sw-trigger kbd {
+                    display: none;
+                }
+                .sw-overlay {
+                    padding: 0;
+                    align-items: stretch;
+                }
+                .sw-panel {
+                    max-width: none;
+                    border-radius: 0 0 14px 14px;
+                }
+                .sw-results {
+                    max-height: 60vh;
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .sw-panel {
+                    animation: none;
+                }
+            }
         </style>
     </head>
     <body>
         <div class="container">
+            <nav class="sw-bar">
+                <button class="sw-trigger" id="sw-open" aria-haspopup="dialog">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <span class="sw-cur" id="sw-cur">Time Value</span>
+                    <span>· switch</span>
+                    <kbd>/</kbd>
+                </button>
+            </nav>
+
             <h1>How much can you spend to save time?</h1>
             <p class="subtitle">
                 Is it worth it to automate it or delegate it?
@@ -295,6 +463,10 @@
                 <a href="https://xkcd.com/1205/" target="_blank" rel="noopener"
                     >XKCD 1205</a
                 >. ¤ is a universal currency symbol.<br />
+                Also try the
+                <a href="https://bet-sizing.florinpopa.dev"
+                    >Bet Sizing Calculator</a
+                >.<br />
                 Made by
                 <a
                     href="https://florinpopa.dev/"
@@ -451,6 +623,137 @@
             salaryInput.addEventListener("focus", () => {
                 salaryInput.classList.remove("highlight");
             });
+        </script>
+
+        <script>
+            // Calculator switcher — shared across the suite via an inline registry.
+            // To add a calculator: append it to CALCS here AND in every sibling page.
+            // URLs are absolute because each calculator is its own subdomain.
+            (function () {
+                const CURRENT = "time-value";
+                const CALCS = [
+                    {
+                        id: "time-value",
+                        name: "Time Value",
+                        desc: "What a recurring task is worth automating.",
+                        url: "https://tvc.florinpopa.dev",
+                    },
+                    {
+                        id: "bet-sizing",
+                        name: "Bet Sizing",
+                        desc: "Kelly stake for a favourable bet.",
+                        url: "https://bet-sizing.florinpopa.dev",
+                    },
+                ];
+
+                const trigger = document.getElementById("sw-open");
+                if (!trigger) return;
+                const isTouch = window.matchMedia("(pointer: coarse)").matches;
+                let query = "";
+                let cursor = 0;
+
+                const matches = () =>
+                    CALCS.filter(
+                        (c) =>
+                            c.name.toLowerCase().includes(query) ||
+                            c.desc.toLowerCase().includes(query),
+                    );
+                const firstCursor = (list) => {
+                    const i = list.findIndex((c) => c.id !== CURRENT);
+                    return i === -1 ? 0 : i;
+                };
+
+                function draw() {
+                    let ov = document.getElementById("sw-overlay");
+                    const prev = ov && ov.querySelector("input");
+                    const hadFocus = prev && document.activeElement === prev;
+                    const list = matches();
+                    const rows = list.length
+                        ? list
+                              .map((c, i) => {
+                                  const active = c.id === CURRENT;
+                                  const cls =
+                                      "sw-row" +
+                                      (i === cursor ? " sw-cursor" : "") +
+                                      (active ? " sw-active" : "");
+                                  const body =
+                                      `<span class="sw-name">${c.name}</span>` +
+                                      `<span class="sw-desc">${active ? "you're here" : c.desc}</span>`;
+                                  return active
+                                      ? `<span class="${cls}">${body}</span>`
+                                      : `<a class="${cls}" href="${c.url}">${body}</a>`;
+                              })
+                              .join("")
+                        : `<div class="sw-empty">No calculators match "${query}".</div>`;
+                    const html =
+                        `<div class="sw-panel"><input placeholder="Search calculators…" value="${query}" aria-label="Search calculators">` +
+                        `<div class="sw-results">${rows}</div></div>`;
+                    if (!ov) {
+                        ov = document.createElement("div");
+                        ov.id = "sw-overlay";
+                        ov.className = "sw-overlay";
+                        document.body.appendChild(ov);
+                        ov.addEventListener("click", (e) => {
+                            if (e.target === ov) close();
+                        });
+                    }
+                    ov.innerHTML = html;
+                    const input = ov.querySelector("input");
+                    if (!isTouch || hadFocus) {
+                        input.focus();
+                        input.setSelectionRange(query.length, query.length);
+                    }
+                    input.addEventListener("input", (e) => {
+                        query = e.target.value.toLowerCase();
+                        cursor = firstCursor(matches());
+                        draw();
+                    });
+                    input.addEventListener("keydown", (e) => {
+                        const m = matches();
+                        if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            cursor = Math.min(cursor + 1, m.length - 1);
+                            draw();
+                        } else if (e.key === "ArrowUp") {
+                            e.preventDefault();
+                            cursor = Math.max(cursor - 1, 0);
+                            draw();
+                        } else if (e.key === "Enter" && m[cursor]) {
+                            if (m[cursor].id !== CURRENT)
+                                window.location.href = m[cursor].url;
+                        } else if (e.key === "Escape") {
+                            close();
+                        }
+                    });
+                }
+
+                function open() {
+                    query = "";
+                    cursor = firstCursor(CALCS);
+                    draw();
+                }
+                function close() {
+                    const o = document.getElementById("sw-overlay");
+                    if (o) o.remove();
+                }
+
+                trigger.addEventListener("click", open);
+                document.addEventListener("keydown", (e) => {
+                    const t = e.target.tagName;
+                    const typing =
+                        t === "INPUT" ||
+                        t === "TEXTAREA" ||
+                        e.target.isContentEditable;
+                    const isOpen = !!document.getElementById("sw-overlay");
+                    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                        e.preventDefault();
+                        isOpen ? close() : open();
+                    } else if (e.key === "/" && !typing && !isOpen) {
+                        e.preventDefault();
+                        open();
+                    }
+                });
+            })();
         </script>
     </body>
 </html>
