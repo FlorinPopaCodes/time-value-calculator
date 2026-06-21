@@ -102,14 +102,23 @@ Where `Time Freed Per Year = seconds saved × occurrences per year`
   folder (e.g. `time-value/`, `kelly/`, `ev/`, `napkin/`)
 - Build command: `exit 0` (static files, no build); output directory: `/`
 - Subdomains (canonical URLs; keep in sync with each page's
-  `CALCULATOR_REGISTRY` and the hub list):
-  - Time Value → `tvc.florinpopa.dev`
-  - Kelly Stake → `kelly.florinpopa.dev` *(set up when deploying)*
-  - Expected Value → `ev.florinpopa.dev` *(set up when deploying)*
+  `CALCULATOR_REGISTRY` and the hub list). Every calculator is nested **under the
+  hub's parent** (`*.napkin.florinpopa.dev`) so the suite reads as a family in the
+  address bar; the hub itself sits at that parent apex:
+  - Time Value → `tv.napkin.florinpopa.dev` *(live)*
+  - Kelly Stake → `kelly.napkin.florinpopa.dev` *(set up when deploying)*
+  - Expected Value → `ev.napkin.florinpopa.dev` *(set up when deploying)*
   - Hub → `napkin.florinpopa.dev` *(set up when deploying)*
-- ⚠️ Restructure note: Time Value moved from repo root to `time-value/`. Its
-  existing Pages project must have its **root directory updated to `time-value/`**
-  or the deploy will 404.
+- ⚠️ Nesting note: hosts are **two levels deep** (`tv.napkin.…`, not `tv.…`).
+  Cloudflare's free Universal SSL only covers `florinpopa.dev` + `*.florinpopa.dev`
+  (one wildcard level), **not** `*.napkin.florinpopa.dev`. This works anyway
+  because **Pages issues a dedicated cert per custom hostname** when you add it —
+  verified live on `tv`. No Advanced Certificate Manager needed.
+- ⚠️ Restructure note: hosts moved from flat `*.florinpopa.dev` (e.g. the old
+  `tvc.florinpopa.dev`) to nested `*.napkin.florinpopa.dev`. Nothing was linked
+  publicly at the time, so the old flat hosts were **cut, not redirected**. Folder
+  names are unchanged (`time-value/`, `kelly/`, `ev/`) — only the custom domains
+  moved. Each existing Pages project just needs its **custom domain** swapped.
 - ⚠️ Split note: the combined `bet-sizing/` page was removed in favour of
   `kelly/` + `ev/`. If a `bet-sizing.florinpopa.dev` Pages project was ever
   created, delete it (or redirect it); create fresh projects for `kelly/` and
@@ -128,9 +137,10 @@ six dashboard steps per project (do them by hand):
 2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `napkin/`).
 3. **Build command** `exit 0`.
 4. **Output directory** `/`.
-5. **Add a custom domain** (e.g. `napkin.florinpopa.dev`). Because the
-   `florinpopa.dev` zone is on the **same** Cloudflare account, the `CNAME` is
-   created automatically — no separate DNS step.
+5. **Add a custom domain** (e.g. `tv.napkin.florinpopa.dev`). Because the
+   `florinpopa.dev` zone is on the **same** Cloudflare account, the nested `CNAME`
+   is created automatically and Pages issues a per-host cert — no separate DNS or
+   certificate step (see the Nesting note above).
 6. Wait for the first deploy, then confirm the subdomain resolves.
 
 ## Code Style
