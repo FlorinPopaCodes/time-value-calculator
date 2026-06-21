@@ -4,14 +4,12 @@ A small suite of single-purpose decision calculators. Each one is a standalone,
 dependency-free HTML page deployed to its own subdomain, tied together by a
 shared command-palette switcher (open with the top pill, `/`, or `⌘K`).
 
-| Calculator | Folder | Question | Live |
+| Page | Folder | What it's for | Live |
 |---|---|---|---|
-| Time Value | `time-value/` | How much can you spend to save time? | [tvc.florinpopa.dev](https://tvc.florinpopa.dev) |
-| Kelly Stake | `kelly/` | How much should you bet? (Kelly) | kelly.florinpopa.dev |
-| Expected Value | `ev/` | What is a bet worth, in cash? | ev.florinpopa.dev |
-
-Plus a hub at `napkin.florinpopa.dev` (folder `napkin/`) — a plain fallback index
-of the suite for anyone who lands there directly.
+| Time Value | `time-value/` | How much can you spend to save time? | [tv.napkin.florinpopa.dev](https://tv.napkin.florinpopa.dev) |
+| Kelly Stake | `kelly/` | How much should you bet? (Kelly) | [kelly.napkin.florinpopa.dev](https://kelly.napkin.florinpopa.dev) |
+| Expected Value | `ev/` | What is a bet worth, in cash? | [ev.napkin.florinpopa.dev](https://ev.napkin.florinpopa.dev) |
+| Hub | `napkin/` | Plain fallback index of the suite | [napkin.florinpopa.dev](https://napkin.florinpopa.dev) |
 
 ## Structure
 
