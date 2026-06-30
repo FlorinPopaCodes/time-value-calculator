@@ -31,13 +31,20 @@
                 line-height: 1.8;
             }
 
-            /* ---- ambition control (the single knob) + bet-size toggle ---- */
+            /* ---- ambition control (5 levels) + bet-size toggle ---- */
             .amb { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1.4rem; }
-            .amb .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
+            .amb .head { margin-bottom: 0.7rem; }
             .amb .head .q { font-weight: 600; font-size: 0.95rem; }
-            .amb .head .now { font-size: 0.85rem; color: #4a90d9; font-weight: 600; }
-            .amb input[type="range"] { width: 100%; accent-color: #4a90d9; }
-            .amb .ends { display: flex; justify-content: space-between; font-size: 0.72rem; color: #767676; margin-top: 0.25rem; }
+            .levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+            .levels button { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; border: 2px solid #ddd; border-radius: 8px; background: #fff; padding: 0.55rem 0.3rem; font: inherit; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+            .levels button .lvl { font-size: 0.82rem; font-weight: 600; color: #444; }
+            .levels button .wk { font-size: 0.7rem; color: #767676; font-family: ui-monospace, monospace; }
+            .levels button:hover { border-color: #4a90d9; }
+            /* active uses the committed deeper accent (#2d72b8 ~5:1 on white) so the
+               white sub-label clears AA, distinct from the lighter functional #4a90d9. */
+            .levels button.active { border-color: #2d72b8; background: #2d72b8; }
+            .levels button.active .lvl, .levels button.active .wk { color: #fff; }
+            @media (max-width: 480px) { .levels { gap: 0.3rem; } .levels button { padding: 0.5rem 0.15rem; } .levels button .lvl { font-size: 0.72rem; } .levels button .wk { font-size: 0.62rem; } }
             .fracrow { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.95rem; padding-top: 0.95rem; border-top: 1px solid #f0f0f0; }
             .fracrow .fraclbl { font-size: 0.85rem; color: #666; font-weight: 500; }
             .seg { display: inline-flex; border: 2px solid #ddd; border-radius: 6px; overflow: hidden; }
@@ -56,6 +63,7 @@
             /* The answer gets a deeper shade of the suite accent — reserved for the
                single most important figure, distinct from the functional #4a90d9. */
             .stat.lead .v { font-size: 2.6rem; color: #2d72b8; line-height: 1; }
+            .stat.lead .range { font-family: ui-monospace, monospace; font-size: 0.75rem; color: #717171; margin-top: 0.4rem; }
 
             .ladder { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; overflow: hidden; }
             .lrow { display: grid; grid-template-columns: 4.5rem 1fr 6rem 3.4rem; align-items: center; gap: 0.6rem; padding: 0.6rem 0.9rem; border-top: 1px solid #f0f0f0; }
@@ -118,18 +126,22 @@
 
             <h1>How much runway per experiment?</h1>
             <p class="subtitle">
-                Pick how big you're swinging. The odds rebalance for you, and the math
-                says how much of your runway to put behind each shot — small enough to
-                survive the misses, then go all-in on whatever proves out.
+                Pick how big you're swinging. The math splits your runway across
+                experiments: small enough to survive the misses, then all-in on
+                whatever proves out.
             </p>
 
             <div class="amb">
                 <div class="head">
                     <span class="q">How big are you swinging?</span>
-                    <span class="now" id="amb-now"></span>
                 </div>
-                <input type="range" id="amb-slider" min="0" max="100" step="1" aria-label="Ambition" />
-                <div class="ends"><span>Bootstrap</span><span>Moonshot</span></div>
+                <div class="levels" id="amb-levels" role="group" aria-label="Ambition">
+                    <button type="button" data-a="0.1"><span class="lvl">Bootstrap</span><span class="wk">1%/wk</span></button>
+                    <button type="button" data-a="0.3"><span class="lvl">Steady</span><span class="wk">3%/wk</span></button>
+                    <button type="button" data-a="0.5"><span class="lvl">Ambitious</span><span class="wk">5%/wk</span></button>
+                    <button type="button" data-a="0.7"><span class="lvl">Venture</span><span class="wk">7%/wk</span></button>
+                    <button type="button" data-a="0.9"><span class="lvl">Moonshot</span><span class="wk">10%/wk</span></button>
+                </div>
                 <div class="fracrow">
                     <span class="fraclbl">Bet size</span>
                     <div class="seg" id="frac-seg">
@@ -142,9 +154,8 @@
 
             <div class="studio">
                 <div class="results">
-                    <div class="stat lead"><div class="v" id="r-f"></div><div class="k">per experiment</div></div>
+                    <div class="stat lead"><div class="v" id="r-f"></div><div class="k">per experiment</div><div class="range" id="r-range"></div></div>
                     <div class="stat"><div class="v" id="r-n"></div><div class="k">experiments to run</div></div>
-                    <div class="stat" id="r-band-cell"><div class="v" id="r-band" style="font-size: 1rem"></div><div class="k" id="r-band-k">plausible range</div></div>
                     <div class="stat"><div class="v" id="r-ev"></div><div class="k">expected return</div></div>
                 </div>
                 <div><div class="ladder" id="ladder"></div></div>
@@ -156,12 +167,12 @@
             </div>
 
             <footer>
-                Sizing uses multi-outcome
+                The odds are illustrative, not a forecast. Treat the percentage as a
+                ceiling, not a target: real runway runs out, so you can't keep
+                re-betting forever.<br />
+                Not investment advice. Sizing uses multi-outcome
                 <a href="https://en.wikipedia.org/wiki/Kelly_criterion" target="_blank" rel="noopener">Kelly</a>.
-                The odds are illustrative, not a forecast.<br />
-                Kelly assumes you can re-bet the same edge repeatedly — runway can't, so
-                treat f★ as a ceiling.<br />
-                Not investment advice. Made by
+                Made by
                 <a href="https://florinpopa.dev/" target="_blank" rel="noopener">Florin Popa</a>.
             </footer>
         </div>
@@ -186,17 +197,22 @@
             const KEY_FRAC = "runwayCalculator_fraction";
             const FRAC_SYM = { "0.25": "¼", "0.3333333333333333": "⅓", "0.5": "½" };
 
-            let a = 0.7;    // ambition
+            // Five ambition levels (replacing the old continuous slider). Each snaps
+            // `a` to a band midpoint and is grounded in the weekly-growth rate a founder
+            // at that ambition targets (PG's "Growth": ~5-7%/wk good, 10% exceptional).
+            const LEVELS = [
+                { a: 0.1, label: "Bootstrap", wk: "1%/wk" },
+                { a: 0.3, label: "Steady",    wk: "3%/wk" },
+                { a: 0.5, label: "Ambitious", wk: "5%/wk" },
+                { a: 0.7, label: "Venture",   wk: "7%/wk" },
+                { a: 0.9, label: "Moonshot",  wk: "10%/wk" },
+            ];
+            let a = 0.7;    // ambition (snapped to a LEVELS value)
             let frac = 0.5; // fractional Kelly
 
             function distAt(av) {
                 return OUTCOMES.map((o, i) => ({ ...o, p: (1 - av) * MODEST[i] + av * MOONSHOT[i] }));
             }
-            const ambLabel = (av) =>
-                av < 0.2 ? "Lifestyle / bootstrap" :
-                av < 0.4 ? "Steady growth" :
-                av < 0.6 ? "Ambitious" :
-                av < 0.8 ? "Venture-scale" : "Moonshot — swing for the fences";
 
             // ---------- multi-outcome Kelly ----------
             function normalized(d) { const t = d.reduce((s, o) => s + Math.max(0, o.p), 0) || 1; return d.map((o) => ({ mult: o.mult, p: Math.max(0, o.p) / t })); }
@@ -234,9 +250,8 @@
             const pct = (x) => (x * 100).toFixed(1).replace(/\.0$/, "") + "%";
             const probPct = (x) => (x * 100 < 1 ? (x * 100).toFixed(1) : Math.round(x * 100)) + "%";
 
-            const slider = document.getElementById("amb-slider");
+            const levels = document.getElementById("amb-levels");
             const seg = document.getElementById("frac-seg");
-            const ambNow = document.getElementById("amb-now");
 
             function drawLadder() {
                 const d = distAt(a);
@@ -257,33 +272,38 @@
                 if (f > 0) nEl.innerHTML = Math.max(1, Math.round(1 / f)) + "<small> shots</small>";
                 else nEl.innerHTML = "<small>no positive edge: don't bet</small>";
                 document.getElementById("r-ev").textContent = ev.toFixed(2) + "×";
-                // band collapses to a point with no moonshot to vary (full bootstrap).
-                // Keep the cell in place (no reflow) and show a placeholder instead of hiding it.
-                const degenerate = Math.abs(b.hi - b.lo) < 1e-6;
-                if (degenerate) {
-                    document.getElementById("r-band").textContent = "—";
-                    document.getElementById("r-band-k").textContent = "no tail to vary";
+                // Sensitivity band lives under the headline number, shown only when wide
+                // enough to read. hi/lo < 1.15 (or no positive low) → omit, no placeholder.
+                const rangeEl = document.getElementById("r-range");
+                if (b.lo > 0 && b.hi / b.lo >= 1.15) {
+                    rangeEl.textContent = "range " + pct(b.lo) + " – " + pct(b.hi);
+                    rangeEl.style.display = "";
                 } else {
-                    document.getElementById("r-band").textContent = pct(b.lo) + " – " + pct(b.hi);
-                    document.getElementById("r-band-k").textContent = "plausible range";
+                    rangeEl.style.display = "none";
                 }
-                ambNow.textContent = ambLabel(a);
-                slider.setAttribute("aria-valuetext", ambLabel(a));
                 drawLadder();
             }
             function setFracActive() { seg.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.value === String(frac))); }
+            function setLevelActive() { levels.querySelectorAll("button").forEach((btn) => { const on = parseFloat(btn.dataset.a) === a; btn.classList.toggle("active", on); btn.setAttribute("aria-pressed", on ? "true" : "false"); }); }
 
-            // restore saved state
+            // restore saved state — snap any saved ambition to the nearest level
             const savedAmb = parseFloat(localStorage.getItem(KEY_AMB));
-            if (!isNaN(savedAmb)) a = Math.min(1, Math.max(0, savedAmb));
+            if (!isNaN(savedAmb)) {
+                a = LEVELS.reduce((best, l) => Math.abs(l.a - savedAmb) < Math.abs(best - savedAmb) ? l.a : best, LEVELS[0].a);
+            }
             const savedFrac = localStorage.getItem(KEY_FRAC);
             if (savedFrac && FRAC_SYM[savedFrac]) frac = parseFloat(savedFrac);
 
-            slider.value = Math.round(a * 100);
+            setLevelActive();
             setFracActive();
             update();
 
-            slider.addEventListener("input", () => { a = +slider.value / 100; localStorage.setItem(KEY_AMB, a); update(); });
+            levels.addEventListener("click", (e) => {
+                const btn = e.target.closest("button"); if (!btn) return;
+                a = parseFloat(btn.dataset.a);
+                localStorage.setItem(KEY_AMB, a);
+                setLevelActive(); update();
+            });
             seg.addEventListener("click", (e) => {
                 const btn = e.target.closest("button"); if (!btn) return;
                 frac = parseFloat(btn.dataset.value);
