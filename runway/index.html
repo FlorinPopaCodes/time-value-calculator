@@ -63,7 +63,6 @@
             /* The answer gets a deeper shade of the suite accent — reserved for the
                single most important figure, distinct from the functional #4a90d9. */
             .stat.lead .v { font-size: 2.6rem; color: #2d72b8; line-height: 1; }
-            .stat.lead .range { font-family: ui-monospace, monospace; font-size: 0.75rem; color: #717171; margin-top: 0.4rem; }
 
             .ladder { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; overflow: hidden; }
             .lrow { display: grid; grid-template-columns: 4.5rem 1fr 6rem 3.4rem; align-items: center; gap: 0.6rem; padding: 0.6rem 0.9rem; border-top: 1px solid #f0f0f0; }
@@ -154,7 +153,7 @@
 
             <div class="studio">
                 <div class="results">
-                    <div class="stat lead"><div class="v" id="r-f"></div><div class="k">per experiment</div><div class="range" id="r-range"></div></div>
+                    <div class="stat lead"><div class="v" id="r-f"></div><div class="k">per experiment</div></div>
                     <div class="stat"><div class="v" id="r-n"></div><div class="k">experiments to run</div></div>
                     <div class="stat"><div class="v" id="r-ev"></div><div class="k">expected return</div></div>
                 </div>
@@ -171,7 +170,7 @@
                 ceiling, not a target: real runway runs out, so you can't keep
                 re-betting forever.<br />
                 Not investment advice. Sizing uses multi-outcome
-                <a href="https://en.wikipedia.org/wiki/Kelly_criterion" target="_blank" rel="noopener">Kelly</a>.
+                <a href="https://en.wikipedia.org/wiki/Kelly_criterion#Multiple_outcomes" target="_blank" rel="noopener">Kelly</a>.
                 Made by
                 <a href="https://florinpopa.dev/" target="_blank" rel="noopener">Florin Popa</a>.
             </footer>
@@ -226,27 +225,8 @@
                 return (lo + hi) / 2;
             }
             function evOf(rawDist) { const d = normalized(rawDist); return d.reduce((s, o) => s + o.p * o.mult, 0); }
-            function idxMaxMult(d) { let bi = 0; d.forEach((o, i) => { if (o.mult > d[bi].mult) bi = i; }); return bi; }
-            function idxTotalLoss(d) { const i = d.findIndex((o) => o.mult === 0); return i >= 0 ? i : 0; }
-
-            // band = f★ as the moonshot odds vary ±3× at the current ambition
-            function band(rawDist) {
-                const tailIdx = idxMaxMult(rawDist), resIdx = idxTotalLoss(rawDist);
-                const p0 = rawDist[tailIdx].p;
-                if (p0 <= 1e-9 || tailIdx === resIdx) { const f = solveF(rawDist); return { lo: f, hi: f }; }
-                const fs = [];
-                for (const k of [1 / 3, 0.5, 1, 2, 3]) {
-                    const pt = Math.min(p0 * k, p0 + rawDist[resIdx].p);
-                    const d = rawDist.map((o) => ({ ...o }));
-                    d[resIdx].p += d[tailIdx].p - pt; d[tailIdx].p = pt;
-                    if (d[resIdx].p < -1e-9) continue;
-                    fs.push(solveF(d));
-                }
-                return { lo: Math.min(...fs), hi: Math.max(...fs) };
-            }
 
             const fK = (d) => frac * solveF(d);
-            const fBand = (d) => { const b = band(d); return { lo: frac * b.lo, hi: frac * b.hi }; };
             const pct = (x) => (x * 100).toFixed(1).replace(/\.0$/, "") + "%";
             const probPct = (x) => (x * 100 < 1 ? (x * 100).toFixed(1) : Math.round(x * 100)) + "%";
 
@@ -265,22 +245,13 @@
                     </div>`).join("");
             }
             function update() {
-                const d = distAt(a), f = fK(d), b = fBand(d), ev = evOf(d);
+                const d = distAt(a), f = fK(d), ev = evOf(d);
                 document.getElementById("r-f").textContent = pct(f);
                 // no positive edge → no number of shots to quote; say so rather than print "0 shots"
                 const nEl = document.getElementById("r-n");
                 if (f > 0) nEl.innerHTML = Math.max(1, Math.round(1 / f)) + "<small> shots</small>";
                 else nEl.innerHTML = "<small>no positive edge: don't bet</small>";
                 document.getElementById("r-ev").textContent = ev.toFixed(2) + "×";
-                // Sensitivity band lives under the headline number, shown only when wide
-                // enough to read. hi/lo < 1.15 (or no positive low) → omit, no placeholder.
-                const rangeEl = document.getElementById("r-range");
-                if (b.lo > 0 && b.hi / b.lo >= 1.15) {
-                    rangeEl.textContent = "range " + pct(b.lo) + " – " + pct(b.hi);
-                    rangeEl.style.display = "";
-                } else {
-                    rangeEl.style.display = "none";
-                }
                 drawLadder();
             }
             function setFracActive() { seg.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.value === String(frac))); }

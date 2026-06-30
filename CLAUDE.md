@@ -146,12 +146,15 @@ named ladder (`0× … 1000×`, each with a real-world exemplar); only their
 probabilities move, by linear interpolation between a **modest** anchor
 (`[35, 40, 18, 6.5, 0.5, 0]%`, soft failures + capped upside) and a **moonshot**
 anchor (`[65, 18, 10, 5, 1.8, 0.2]%`, more zeros + a fat tail) keyed off one
-"ambition" slider — so the odds always sum to 1 with nothing to hand-edit. The
-displayed fraction is `f★ × {¼,⅓,½}` (½ default); `≈ 1/f★` is the number of shots
-the runway splits into. The headline insight: **the bigger you swing, the smaller
-each bet must be** — moonshots force diversification (≈12% per shot at bootstrap,
-≈3.5% at moonshot, at ½-Kelly). A "plausible range" band sweeps the moonshot odds
-±3× and is hidden when degenerate (full bootstrap has no tail to vary).
+**ambition** control — so the odds always sum to 1 with nothing to hand-edit.
+That control is **5 discrete buttons** (Bootstrap / Steady / Ambitious / Venture /
+Moonshot), each snapping ambition to a band midpoint and grounded in a
+representative weekly-growth rate (`1 / 3 / 5 / 7 / 10 %/wk`, PG's "Growth"
+vernacular) that bridges to the Growth Curve sibling. The displayed fraction is
+`f★ × {¼,⅓,½}` (½ default); `≈ 1/f★` is the number of shots the runway splits
+into. The headline insight: **the bigger you swing, the smaller each bet must
+be** — moonshots force diversification (≈12% per shot at bootstrap, ≈3.5% at
+moonshot, at ½-Kelly).
 
 ## Deployment
 
