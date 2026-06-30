@@ -10,6 +10,7 @@ shared command-palette switcher (open with the top pill, `/`, or `⌘K`).
 | Kelly Stake | `kelly/` | How much should you bet? (Kelly) | [kelly.napkin.florinpopa.dev](https://kelly.napkin.florinpopa.dev) |
 | Expected Value | `ev/` | What is a bet worth, in cash? | [ev.napkin.florinpopa.dev](https://ev.napkin.florinpopa.dev) |
 | Growth Curve | `growth/` | Where does your weekly growth rate land you? | [growth.napkin.florinpopa.dev](https://growth.napkin.florinpopa.dev) |
+| Runway Split | `runway/` | How much runway per experiment before going all-in? | [runway.napkin.florinpopa.dev](https://runway.napkin.florinpopa.dev) |
 | Hub | `napkin/` | Plain fallback index of the suite | [napkin.florinpopa.dev](https://napkin.florinpopa.dev) |
 
 ## Structure
@@ -37,3 +38,18 @@ starting-point-independent (no MRR in the formula), so the grid takes no input �
 it's a universal reference, heat-shaded by magnitude.
 
 Inspired by Paul Graham's [Startup = Growth](https://paulgraham.com/growth.html)
+
+## Runway Split formula
+
+```
+f★ = argmax_f  Σ pᵢ · ln(1 + f · bᵢ)    (bᵢ = outcome multiple − 1)
+```
+
+Multi-outcome Kelly over a fixed power-law outcome ladder, solved by bisection on
+`G'(f)`. The single input is **ambition** (5 buttons, Bootstrap → Moonshot, each
+grounded in a representative weekly-growth rate), which interpolates between two
+anchor distributions so the per-outcome odds rebalance automatically. The
+displayed size is `f★ × {¼,⅓,½}` (½-Kelly default); `≈ 1/f★` is how many shots
+the runway splits into. The bigger you swing, the smaller each bet must be.
+
+Based on the [multiple-outcome Kelly criterion](https://en.wikipedia.org/wiki/Kelly_criterion#Multiple_outcomes)
