@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Runway Split Calculator</title>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                background: #fafafa;
+                color: #1a1a1a;
+                padding: 2rem 1rem;
+                min-height: 100vh;
+            }
+            .container { max-width: 900px; margin: 0 auto; }
+            h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; }
+            .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+
+            .formula {
+                text-align: center;
+                font-family: ui-monospace, monospace;
+                font-size: 0.8rem;
+                color: #555;
+                background: #f0f0f0;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                margin-top: 2rem;
+                display: block;
+                width: 100%;
+                line-height: 1.8;
+            }
+
+            /* ---- ambition control (5 levels) + bet-size toggle ---- */
+            .amb { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1.4rem; }
+            .amb .head { margin-bottom: 0.7rem; }
+            .amb .head .q { font-weight: 600; font-size: 0.95rem; }
+            .levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+            .levels button { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; border: 2px solid #ddd; border-radius: 8px; background: #fff; padding: 0.55rem 0.3rem; font: inherit; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+            .levels button .lvl { font-size: 0.82rem; font-weight: 600; color: #444; }
+            .levels button .wk { font-size: 0.7rem; color: #767676; font-family: ui-monospace, monospace; }
+            .levels button:hover { border-color: #4a90d9; }
+            /* active uses the committed deeper accent (#2d72b8 ~5:1 on white) so the
+               white sub-label clears AA, distinct from the lighter functional #4a90d9. */
+            .levels button.active { border-color: #2d72b8; background: #2d72b8; }
+            .levels button.active .lvl, .levels button.active .wk { color: #fff; }
+            @media (max-width: 480px) { .levels { gap: 0.3rem; } .levels button { padding: 0.5rem 0.15rem; } .levels button .lvl { font-size: 0.72rem; } .levels button .wk { font-size: 0.62rem; } }
+            .fracrow { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.95rem; padding-top: 0.95rem; border-top: 1px solid #f0f0f0; }
+            .fracrow .fraclbl { font-size: 0.85rem; color: #666; font-weight: 500; }
+            .seg { display: inline-flex; border: 2px solid #ddd; border-radius: 6px; overflow: hidden; }
+            .seg button { border: none; background: #fff; padding: 0.35rem 0.65rem; font: inherit; font-size: 0.82rem; cursor: pointer; color: #666; }
+            .seg button + button { border-left: 1px solid #ddd; }
+            .seg button.active { background: #4a90d9; color: #fff; }
+
+            /* ---- results (left) + outcome ladder (right) ---- */
+            .studio { display: grid; grid-template-columns: 250px 1fr; gap: 1.4rem; align-items: start; }
+            .results { display: flex; flex-direction: column; gap: 0.7rem; position: sticky; top: 1rem; }
+            .stat { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.8rem 1.1rem; text-align: center; }
+            .stat .k { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #717171; margin-top: 0.3rem; }
+            .stat .v { font-family: ui-monospace, monospace; font-size: 1.25rem; font-weight: 600; color: #1a1a1a; }
+            .stat .v small { font-size: 0.8rem; color: #717171; font-weight: 400; }
+            .stat.lead { padding: 1.2rem; }
+            /* The answer gets a deeper shade of the suite accent — reserved for the
+               single most important figure, distinct from the functional #4a90d9. */
+            .stat.lead .v { font-size: 2.6rem; color: #2d72b8; line-height: 1; }
+
+            .ladder { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; overflow: hidden; }
+            .lrow { display: grid; grid-template-columns: 4.5rem 1fr 6rem 3.4rem; align-items: center; gap: 0.6rem; padding: 0.6rem 0.9rem; border-top: 1px solid #f0f0f0; }
+            .lrow:first-child { border-top: none; }
+            .lmult { font-family: ui-monospace, monospace; font-weight: 700; color: #4a90d9; font-size: 0.95rem; }
+            .lrow.loss .lmult { color: #767676; }
+            .lname { font-size: 0.9rem; font-weight: 500; }
+            .lex { font-size: 0.76rem; color: #767676; }
+            .lbarwrap { height: 8px; background: #eef2f7; border-radius: 4px; overflow: hidden; }
+            .lbar { height: 100%; background: #4a90d9; border-radius: 4px; transition: width 0.15s; }
+            .lrow.loss .lbar { background: #d0d0d0; }
+            .lprob { font-family: ui-monospace, monospace; font-size: 0.85rem; text-align: right; color: #555; }
+            @media (max-width: 680px) { .studio { grid-template-columns: 1fr; } }
+
+            footer { text-align: center; margin-top: 2rem; font-size: 0.8rem; color: #6f6f6f; }
+            footer a { color: #666; }
+
+            /* ---- Calculator switcher (shared across the suite) ---- */
+            .sw-bar { text-align: center; margin-bottom: 1.75rem; }
+            .sw-trigger { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 40px; padding: 0.5rem 0.85rem; background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; cursor: pointer; font: inherit; font-size: 0.88rem; color: #6e6e6e; transition: border-color 0.15s; }
+            .sw-trigger:hover { border-color: #4a90d9; }
+            .sw-trigger svg { width: 15px; height: 15px; stroke: #999; flex: 0 0 auto; }
+            .sw-trigger .sw-cur { color: #1a1a1a; font-weight: 600; }
+            .sw-trigger kbd { font-family: ui-monospace, monospace; font-size: 0.72rem; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 5px; padding: 0.05rem 0.35rem; color: #6e6e6e; }
+            .sw-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(26, 26, 26, 0.32); display: flex; align-items: flex-start; justify-content: center; padding: 12vh 1rem 1rem; }
+            .sw-panel { width: 100%; max-width: 460px; background: #fff; border-radius: 12px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22); overflow: hidden; animation: sw-in 0.16s cubic-bezier(0.22, 1, 0.36, 1); }
+            .sw-results { max-height: 320px; overflow-y: auto; padding: 0.35rem; }
+            .sw-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.75rem; border-radius: 8px; cursor: pointer; color: inherit; text-decoration: none; }
+            .sw-row:hover { background: #f4f7fb; }
+            .sw-row.sw-active { cursor: default; }
+            .sw-text { display: flex; flex-direction: column; gap: 0.1rem; }
+            .sw-row .sw-name { font-size: 0.92rem; font-weight: 600; color: #1a1a1a; }
+            .sw-row.sw-active .sw-name { color: #4a90d9; }
+            .sw-row .sw-desc { font-size: 0.78rem; color: #6f6f6f; }
+            .sw-row kbd { flex: 0 0 auto; font-family: ui-monospace, monospace; font-size: 0.72rem; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 5px; padding: 0.1rem 0.45rem; color: #6e6e6e; }
+            @keyframes sw-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+            @media (max-width: 560px) {
+                .sw-trigger { width: 100%; justify-content: center; }
+                .sw-trigger kbd, .sw-row kbd { display: none; }
+                .sw-overlay { padding: 0; align-items: stretch; }
+                .sw-panel { max-width: none; border-radius: 0 0 14px 14px; }
+                .sw-results { max-height: 60vh; }
+            }
+            @media (prefers-reduced-motion: reduce) { .sw-panel { animation: none; } .lbar { transition: none; } }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <nav class="sw-bar">
+                <button class="sw-trigger" id="sw-open" aria-haspopup="dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                    <span class="sw-cur" id="sw-cur">Runway Split</span>
+                    <span>· switch</span>
+                    <kbd>/</kbd>
+                </button>
+            </nav>
+
+            <h1>How much runway per experiment?</h1>
+            <p class="subtitle">
+                Pick how big you're swinging. The math splits your runway across
+                experiments: small enough to survive the misses, then all-in on
+                whatever proves out.
+            </p>
+
+            <div class="amb">
+                <div class="head">
+                    <span class="q">How big are you swinging?</span>
+                </div>
+                <div class="levels" id="amb-levels" role="group" aria-label="Ambition">
+                    <button type="button" data-a="0.1"><span class="lvl">Bootstrap</span><span class="wk">1%/wk</span></button>
+                    <button type="button" data-a="0.3"><span class="lvl">Steady</span><span class="wk">3%/wk</span></button>
+                    <button type="button" data-a="0.5"><span class="lvl">Ambitious</span><span class="wk">5%/wk</span></button>
+                    <button type="button" data-a="0.7"><span class="lvl">Venture</span><span class="wk">7%/wk</span></button>
+                    <button type="button" data-a="0.9"><span class="lvl">Moonshot</span><span class="wk">10%/wk</span></button>
+                </div>
+                <div class="fracrow">
+                    <span class="fraclbl">Bet size</span>
+                    <div class="seg" id="frac-seg">
+                        <button data-value="0.25">¼ Kelly</button>
+                        <button data-value="0.3333333333333333">⅓</button>
+                        <button data-value="0.5">½</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="studio">
+                <div class="results">
+                    <div class="stat lead"><div class="v" id="r-f"></div><div class="k">per experiment</div></div>
+                    <div class="stat"><div class="v" id="r-n"></div><div class="k">experiments to run</div></div>
+                    <div class="stat"><div class="v" id="r-ev"></div><div class="k">expected return</div></div>
+                </div>
+                <div><div class="ladder" id="ladder"></div></div>
+            </div>
+
+            <div class="formula">
+                f★ maximises Σ pᵢ · ln(1 + f · bᵢ) &nbsp;·&nbsp; shown at your chosen
+                fraction of full Kelly
+            </div>
+
+            <footer>
+                The odds are illustrative, not a forecast. Treat the percentage as a
+                ceiling, not a target: real runway runs out, so you can't keep
+                re-betting forever.<br />
+                Not investment advice. Sizing uses multi-outcome
+                <a href="https://en.wikipedia.org/wiki/Kelly_criterion#Multiple_outcomes" target="_blank" rel="noopener">Kelly</a>.
+                Made by
+                <a href="https://florinpopa.dev/" target="_blank" rel="noopener">Florin Popa</a>.
+            </footer>
+        </div>
+
+        <script>
+            // ---------- outcome ladder + anchor distributions ----------
+            // Fixed gross multiples with human names + grayed exemplars. Probabilities
+            // are never edited — they interpolate between two anchors by ambition.
+            const OUTCOMES = [
+                { mult: 0,    name: "Doesn't work out",       ex: "what most experiments become" },
+                { mult: 1,    name: "You get your time back", ex: "a soft acqui-hire" },
+                { mult: 3,    name: "A tidy win",             ex: "a small trade sale" },
+                { mult: 10,   name: "A strong exit",          ex: "a healthy acquisition" },
+                { mult: 100,  name: "A breakout",             ex: "Figma · Twitch" },
+                { mult: 1000, name: "A moonshot",             ex: "Airbnb · Stripe · Coinbase" },
+            ];
+            // ambition 0 = bootstrap (soft failures, capped upside) … 1 = moonshot (more zeros, fat tail)
+            const MODEST   = [0.35, 0.40, 0.18, 0.065, 0.005, 0.0];
+            const MOONSHOT = [0.65, 0.18, 0.10, 0.05, 0.018, 0.002];
+
+            const KEY_AMB = "runwayCalculator_ambition";
+            const KEY_FRAC = "runwayCalculator_fraction";
+            const FRAC_SYM = { "0.25": "¼", "0.3333333333333333": "⅓", "0.5": "½" };
+
+            // Five ambition levels (replacing the old continuous slider). Each snaps
+            // `a` to a band midpoint and is grounded in the weekly-growth rate a founder
+            // at that ambition targets (PG's "Growth": ~5-7%/wk good, 10% exceptional).
+            const LEVELS = [
+                { a: 0.1, label: "Bootstrap", wk: "1%/wk" },
+                { a: 0.3, label: "Steady",    wk: "3%/wk" },
+                { a: 0.5, label: "Ambitious", wk: "5%/wk" },
+                { a: 0.7, label: "Venture",   wk: "7%/wk" },
+                { a: 0.9, label: "Moonshot",  wk: "10%/wk" },
+            ];
+            let a = 0.7;    // ambition (snapped to a LEVELS value)
+            let frac = 0.5; // fractional Kelly
+
+            function distAt(av) {
+                return OUTCOMES.map((o, i) => ({ ...o, p: (1 - av) * MODEST[i] + av * MOONSHOT[i] }));
+            }
+
+            // ---------- multi-outcome Kelly ----------
+            function normalized(d) { const t = d.reduce((s, o) => s + Math.max(0, o.p), 0) || 1; return d.map((o) => ({ mult: o.mult, p: Math.max(0, o.p) / t })); }
+            function gPrime(d, f) { let s = 0; for (const o of d) { const b = o.mult - 1; s += o.p * b / (1 + f * b); } return s; }
+            function solveF(rawDist) {
+                const d = normalized(rawDist);
+                if (gPrime(d, 0) <= 1e-9) return 0;          // no edge
+                if (gPrime(d, 0.999999) > 0) return 1;       // no ruin risk → clamp all-in
+                let lo = 0, hi = 0.999999;
+                for (let i = 0; i < 100; i++) { const mid = (lo + hi) / 2; if (gPrime(d, mid) > 0) lo = mid; else hi = mid; }
+                return (lo + hi) / 2;
+            }
+            function evOf(rawDist) { const d = normalized(rawDist); return d.reduce((s, o) => s + o.p * o.mult, 0); }
+
+            const fK = (d) => frac * solveF(d);
+            const pct = (x) => (x * 100).toFixed(1).replace(/\.0$/, "") + "%";
+            const probPct = (x) => (x * 100 < 1 ? (x * 100).toFixed(1) : Math.round(x * 100)) + "%";
+
+            const levels = document.getElementById("amb-levels");
+            const seg = document.getElementById("frac-seg");
+
+            function drawLadder() {
+                const d = distAt(a);
+                const maxP = Math.max(...d.map((o) => o.p));
+                document.getElementById("ladder").innerHTML = d.map((o) =>
+                    `<div class="lrow ${o.mult === 0 ? "loss" : ""}">
+                        <div class="lmult">${o.mult}×</div>
+                        <div><div class="lname">${o.name}</div><div class="lex">${o.ex}</div></div>
+                        <div class="lbarwrap"><div class="lbar" style="width:${maxP ? (o.p / maxP) * 100 : 0}%"></div></div>
+                        <div class="lprob">${probPct(o.p)}</div>
+                    </div>`).join("");
+            }
+            function update() {
+                const d = distAt(a), f = fK(d), ev = evOf(d);
+                document.getElementById("r-f").textContent = pct(f);
+                // no positive edge → no number of shots to quote; say so rather than print "0 shots"
+                const nEl = document.getElementById("r-n");
+                if (f > 0) nEl.innerHTML = Math.max(1, Math.round(1 / f)) + "<small> shots</small>";
+                else nEl.innerHTML = "<small>no positive edge: don't bet</small>";
+                document.getElementById("r-ev").textContent = ev.toFixed(2) + "×";
+                drawLadder();
+            }
+            function setFracActive() { seg.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.value === String(frac))); }
+            function setLevelActive() { levels.querySelectorAll("button").forEach((btn) => { const on = parseFloat(btn.dataset.a) === a; btn.classList.toggle("active", on); btn.setAttribute("aria-pressed", on ? "true" : "false"); }); }
+
+            // restore saved state — snap any saved ambition to the nearest level
+            const savedAmb = parseFloat(localStorage.getItem(KEY_AMB));
+            if (!isNaN(savedAmb)) {
+                a = LEVELS.reduce((best, l) => Math.abs(l.a - savedAmb) < Math.abs(best - savedAmb) ? l.a : best, LEVELS[0].a);
+            }
+            const savedFrac = localStorage.getItem(KEY_FRAC);
+            if (savedFrac && FRAC_SYM[savedFrac]) frac = parseFloat(savedFrac);
+
+            setLevelActive();
+            setFracActive();
+            update();
+
+            levels.addEventListener("click", (e) => {
+                const btn = e.target.closest("button"); if (!btn) return;
+                a = parseFloat(btn.dataset.a);
+                localStorage.setItem(KEY_AMB, a);
+                setLevelActive(); update();
+            });
+            seg.addEventListener("click", (e) => {
+                const btn = e.target.closest("button"); if (!btn) return;
+                frac = parseFloat(btn.dataset.value);
+                localStorage.setItem(KEY_FRAC, btn.dataset.value);
+                setFracActive(); update();
+            });
+        </script>
+
+        <script>
+            // Calculator switcher — shared across the suite via an inline registry.
+            // To add a calculator: append it to CALCULATOR_REGISTRY here AND in every sibling page.
+            // URLs are absolute because each calculator is its own subdomain.
+            (function () {
+                const CURRENT = "runway";
+                const CALCULATOR_REGISTRY = [
+                    {
+                        id: "time-value",
+                        name: "Time Value",
+                        desc: "What a recurring task is worth automating.",
+                        url: "https://tv.napkin.florinpopa.dev",
+                    },
+                    {
+                        id: "kelly",
+                        name: "Kelly Stake",
+                        desc: "How much to bet on a favourable edge.",
+                        url: "https://kelly.napkin.florinpopa.dev",
+                    },
+                    {
+                        id: "ev",
+                        name: "Expected Value",
+                        desc: "What a bet is worth, in cash.",
+                        url: "https://ev.napkin.florinpopa.dev",
+                    },
+                    {
+                        id: "growth",
+                        name: "Growth Curve",
+                        desc: "What a weekly growth rate compounds into.",
+                        url: "https://growth.napkin.florinpopa.dev",
+                    },
+                    {
+                        id: "runway",
+                        name: "Runway Split",
+                        desc: "How much runway behind each experiment.",
+                        url: "https://runway.napkin.florinpopa.dev",
+                    },
+                ];
+
+                const trigger = document.getElementById("sw-open");
+                if (!trigger) return;
+                // Each calculator's jump key is the first letter of its name
+                // (T/K/E/G/R today, all unique). Collisions are out of scope until
+                // the roster actually grows one.
+                const keyFor = (c) => c.name[0].toUpperCase();
+
+                function draw() {
+                    let ov = document.getElementById("sw-overlay");
+                    const rows = CALCULATOR_REGISTRY.map((c) => {
+                        const active = c.id === CURRENT;
+                        const text =
+                            `<span class="sw-text">` +
+                            `<span class="sw-name">${c.name}</span>` +
+                            `<span class="sw-desc">${active ? "you're here" : c.desc}</span>` +
+                            `</span>`;
+                        return active
+                            ? `<span class="sw-row sw-active">${text}</span>`
+                            : `<a class="sw-row" href="${c.url}">${text}<kbd>${keyFor(c)}</kbd></a>`;
+                    }).join("");
+                    const html = `<div class="sw-panel"><div class="sw-results">${rows}</div></div>`;
+                    if (!ov) {
+                        ov = document.createElement("div");
+                        ov.id = "sw-overlay";
+                        ov.className = "sw-overlay";
+                        document.body.appendChild(ov);
+                        ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
+                    }
+                    ov.innerHTML = html;
+                }
+
+                function open() { draw(); }
+                function close() { const o = document.getElementById("sw-overlay"); if (o) o.remove(); }
+
+                trigger.addEventListener("click", open);
+                document.addEventListener("keydown", (e) => {
+                    const t = e.target.tagName;
+                    const typing = t === "INPUT" || t === "TEXTAREA" || e.target.isContentEditable;
+                    const isOpen = !!document.getElementById("sw-overlay");
+                    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                        e.preventDefault();
+                        isOpen ? close() : open();
+                    } else if (!isOpen && e.key === "/" && !typing) {
+                        e.preventDefault();
+                        open();
+                    } else if (isOpen) {
+                        if (e.key === "Escape") {
+                            close();
+                        } else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+                            const target = CALCULATOR_REGISTRY.find((c) => c.id !== CURRENT && keyFor(c) === e.key.toUpperCase());
+                            if (target) { e.preventDefault(); window.location.href = target.url; }
+                        }
+                    }
+                });
+            })();
+        </script>
+    </body>
+</html>

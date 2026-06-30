@@ -15,6 +15,13 @@ Calculators today:
   grid of weekly growth rates × horizons (`(1 + weekly rate) ^ weeks`). The
   multiple is starting-point-independent, so there's no input — it's a universal
   reference table, heat-shaded by magnitude.
+- **Runway Split** (`runway/`) — for a founder running several experiments: how
+  much of your runway to put behind *each* one before going all-in, without going
+  bankrupt. Multi-outcome Kelly over a power-law outcome ladder
+  (`f★ maximises Σ pᵢ·ln(1 + f·bᵢ)`, solved by bisection on `G'(f)`). The single
+  input is **ambition** (bootstrap → moonshot), which interpolates between two
+  anchor distributions so the per-outcome odds rebalance automatically; a ½-Kelly
+  default (¼/⅓/½ toggle) tempers the size.
 
 > The two betting calcs were split out of a single combined "Bet Sizing" page:
 > Kelly answers *how much to bet*, EV answers *what a bet is worth*. They share
@@ -26,7 +33,8 @@ Calculators today:
 time-value/index.html    # Time Value calculator (HTML + CSS + JS, no build step)
 kelly/index.html         # Kelly Stake calculator (HTML + CSS + JS, no build step)
 ev/index.html            # Expected Value calculator (HTML + CSS + JS, no build step)
-growth/index.html      # Growth Curve calculator (HTML + CSS + JS, no build step)
+growth/index.html        # Growth Curve calculator (HTML + CSS + JS, no build step)
+runway/index.html        # Runway Split calculator (multi-outcome Kelly, no build step)
 napkin/index.html        # Hub: fallback index of the whole suite (static, no JS)
 PRODUCT.md               # Strategic context (impeccable)
 ```
@@ -126,11 +134,33 @@ tint — the peak of the ramp, not a grayed-out dead cell. Unlike Time Value the
 is no negligible gray; every positive weekly rate beats it, so the only extreme
 is the explosive one.
 
+Runway Split sizes a single bet against a **distribution** of outcomes, not a
+binary win/lose, so it can't use Kelly's `b:1` grid:
+
+```
+f★ = argmax_f  Σ pᵢ · ln(1 + f · bᵢ)        (bᵢ = outcome multiple − 1)
+```
+
+solved by bisection on `G'(f) = Σ pᵢbᵢ / (1 + f·bᵢ) = 0`. Outcomes are a fixed
+named ladder (`0× … 1000×`, each with a real-world exemplar); only their
+probabilities move, by linear interpolation between a **modest** anchor
+(`[35, 40, 18, 6.5, 0.5, 0]%`, soft failures + capped upside) and a **moonshot**
+anchor (`[65, 18, 10, 5, 1.8, 0.2]%`, more zeros + a fat tail) keyed off one
+**ambition** control — so the odds always sum to 1 with nothing to hand-edit.
+That control is **5 discrete buttons** (Bootstrap / Steady / Ambitious / Venture /
+Moonshot), each snapping ambition to a band midpoint and grounded in a
+representative weekly-growth rate (`1 / 3 / 5 / 7 / 10 %/wk`, PG's "Growth"
+vernacular) that bridges to the Growth Curve sibling. The displayed fraction is
+`f★ × {¼,⅓,½}` (½ default); `≈ 1/f★` is the number of shots the runway splits
+into. The headline insight: **the bigger you swing, the smaller each bet must
+be** — moonshots force diversification (≈12% per shot at bootstrap, ≈3.5% at
+moonshot, at ½-Kelly).
+
 ## Deployment
 
 - Hosted on Cloudflare Pages with GitHub integration
 - **One Pages project per folder**, each with its **root directory** set to that
-  folder (e.g. `time-value/`, `kelly/`, `ev/`, `growth/`, `napkin/`)
+  folder (e.g. `time-value/`, `kelly/`, `ev/`, `growth/`, `runway/`, `napkin/`)
 - Build command: `exit 0` (static files, no build); output directory: `/`
 - Subdomains (canonical URLs; keep in sync with each page's
   `CALCULATOR_REGISTRY` and the hub list). Every calculator is nested **under the
@@ -140,6 +170,7 @@ is the explosive one.
   - Kelly Stake → `kelly.napkin.florinpopa.dev` *(set up when deploying)*
   - Expected Value → `ev.napkin.florinpopa.dev` *(set up when deploying)*
   - Growth Curve → `growth.napkin.florinpopa.dev` *(set up when deploying)*
+  - Runway Split → `runway.napkin.florinpopa.dev` *(set up when deploying)*
   - Hub → `napkin.florinpopa.dev` *(set up when deploying)*
 - ⚠️ Nesting note: hosts are **two levels deep** (`tv.napkin.…`, not `tv.…`).
   Cloudflare's free Universal SSL only covers `florinpopa.dev` + `*.florinpopa.dev`
@@ -166,7 +197,7 @@ through Time Value, automation lost to clicking by an order of magnitude. The
 six dashboard steps per project (do them by hand):
 
 1. **Create a Pages project**, connect this GitHub repo.
-2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `growth/`, `napkin/`).
+2. Set **root directory** to the folder (`time-value/`, `kelly/`, `ev/`, `growth/`, `runway/`, `napkin/`).
 3. **Build command** `exit 0`.
 4. **Output directory** `/`.
 5. **Add a custom domain** (e.g. `tv.napkin.florinpopa.dev`). Because the
